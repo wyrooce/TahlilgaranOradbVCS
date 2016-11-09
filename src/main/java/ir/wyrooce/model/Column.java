@@ -12,7 +12,7 @@ public class Column {
     private String dataDefault;
     private String nullable;
 
-    public JSONObject getJSON(){
+    public JSONObject toJSON(){
         JSONObject obj = new JSONObject();
 
         obj.put("name", name);
@@ -54,4 +54,5 @@ public class Column {
     public void setNullable(String nullable) {
         this.nullable = nullable;
     }
+
 }

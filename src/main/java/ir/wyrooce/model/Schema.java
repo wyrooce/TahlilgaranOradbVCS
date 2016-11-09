@@ -22,6 +22,12 @@ public class Schema {
         this.name = name;
     }
 
+    public Schema(JSONObject schemaJSON){
+        name = (String) schemaJSON.get("name");
+        JSONArray functionSJONArray = (JSONArray) schemaJSON.get("function");
+
+    }
+
     public Table getTable(int idx){
         return tables.get(idx);
     }
@@ -64,26 +70,26 @@ public class Schema {
         }
     }
 
-    public JSONObject getJSON(){
+    public JSONObject toJSON(){
         JSONObject schema = new JSONObject();
         schema.put("name", name);
 
         JSONArray procedureJSONArray = new JSONArray();
         for (Procedure procedure : procedures) {
-            procedureJSONArray.add(procedure.getJSON());
+            procedureJSONArray.add(procedure.toJSON());
         }
-        schema.put("procedure", null);
+        schema.put("procedure", procedureJSONArray);
 
         JSONArray functionJSONArray = new JSONArray();
         for (Function function : functions) {
-            functionJSONArray.add(function);
+            functionJSONArray.add(function.toJSON());
         }
-        schema.put("function", functions.get(2).getJSON());
+        schema.put("function", functionJSONArray);
         return schema;
     }
 
     public void createSnapshot() throws FileNotFoundException {
         PrintStream out = new PrintStream(new FileOutputStream(name+".snapshot"));
-        out.println(getJSON().toJSONString());
+        out.println(toJSON().toJSONString());
     }
 }

@@ -3,6 +3,8 @@ package ir.wyrooce.model;
 import javax.swing.*;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Scanner;
@@ -76,29 +78,47 @@ public class DatabaseAccess {
         return dbConnection;
     }
 
-    public ArrayList<Procedure> getProcedures() throws SQLException {
+    public ArrayList<Procedure> getProceduresByConnection() throws SQLException, NoSuchAlgorithmException {
         Connection con = getDBConnection();
-        PreparedStatement stm = con.prepareStatement(Query.procedureSourceCodeSQL);
+        PreparedStatement stm = con.prepareStatement(Util.procedureSourceCodeSQL);
         ResultSet set = stm.executeQuery();
         ArrayList<Procedure> resultArray = new ArrayList<Procedure>();
 
         while (set.next()){
-            resultArray.add(new Procedure(set.getString(1), set.getString(2)));
+            resultArray.add(new Procedure(set.getString(1), Util.sha1(set.getString(2))));
         }
 
         return resultArray;
     }
 
-    public ArrayList<Function> getFunction() throws SQLException {
+    public ArrayList<Procedure> getProcedures(String mode) throws SQLException, NoSuchAlgorithmException {
+        if (mode.equals("connection")) return getProceduresByConnection();
+        else return getProceduresBySnapshot();
+    }
+
+    public ArrayList<Function> getFunction(String mode) throws SQLException, NoSuchAlgorithmException {
+        if (mode.equals("connection")) return getFunctionByConnection();
+        else return getFunctionBySnapshot();
+    }
+
+    public ArrayList<Function> getFunctionByConnection() throws SQLException, NoSuchAlgorithmException {
         Connection con = getDBConnection();
-        PreparedStatement stm = con.prepareStatement(Query.functionSerouceCode);
+        PreparedStatement stm = con.prepareStatement(Util.functionSerouceCode);
         ResultSet set = stm.executeQuery();
         ArrayList<Function> resultArray = new ArrayList<Function>();
 
         while (set.next()){
-            resultArray.add(new Function(set.getString(1), set.getString(2)));
+            resultArray.add(new Function(set.getString(1), Util.sha1(set.getString(2))));
         }
 
         return resultArray;
+    }
+
+    public ArrayList<Procedure> getProceduresBySnapshot() {
+        return null;
+    }
+
+    public ArrayList<Function> getFunctionBySnapshot() {
+        return null;
     }
 }

@@ -28,9 +28,9 @@ public class Function {
         return name;
     }
 
-    public JSONObject getJSON() {
+    public JSONObject toJSON() {
         JSONObject procedureJSON = new JSONObject();
-        procedureJSON.put("name", name);
         procedureJSON.put("sourceCode", sourceCode);
+        procedureJSON.put("name", name);
         return procedureJSON;    }
 }

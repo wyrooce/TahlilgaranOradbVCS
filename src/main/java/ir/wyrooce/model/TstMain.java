@@ -18,26 +18,29 @@ public class TstMain {
         Schema schema = new Schema("HAMI");
         DatabaseAccess da = new DatabaseAccess();
 
-        ArrayList<Procedure> prc = da.getProcedures();
+        ArrayList<Procedure> prc = da.getProcedures("connection");
         if (prc != null) {
             for (int i = 0; i < prc.size(); i++) {
                 schema.addProcedure(prc.get(i));
             }
         }
 
-        ArrayList<Function> fnc = da.getFunction();
+        ArrayList<Function> fnc = da.getFunction("connection");
         if (fnc != null) {
             for (int i = 0; i < fnc.size(); i++) {
                 schema.addFunction(fnc.get(i));
             }
         }
 
-
-        System.out.println(schema.getJSON().toJSONString());
+        //System.out.println(Util.sha1("مرتضی هستم"));
+        //System.out.println(schema.toJSON().toJSONString());
         schema.createSnapshot();
-
-
     }
 
 
 }
+
+
+
+
+

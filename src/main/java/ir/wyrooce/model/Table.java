@@ -25,7 +25,7 @@ public class Table {
         tableJSON.put("name", name);
 
         for (Column column : columns) {
-            columnsJSON.add(column.getJSON());
+            columnsJSON.add(column.toJSON());
         }
 
         tableJSON.put("column", columnsJSON);
