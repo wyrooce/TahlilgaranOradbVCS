@@ -1,9 +1,6 @@
 package ir.wyrooce.model;
 
-import info.debatty.java.stringsimilarity.*;
-
 import java.io.FileNotFoundException;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -32,9 +29,22 @@ public class TstMain {
             }
         }
 
-        //System.out.println(Util.sha1("مرتضی هستم"));
-        //System.out.println(schema.toJSON().toJSONString());
-        schema.createSnapshot();
+        ArrayList<Table> tbl = da.getTable("connection");
+        if (tbl != null){
+            for (Table table : tbl) {
+                schema.addTable(table);
+            }
+        }
+
+        ArrayList<View> nvw = da.getViews("connection");
+        if (nvw != null){
+            for (View view : nvw) {
+                schema.addView(view);
+            }
+        }
+        schema.printView();
+
+
     }
 
 

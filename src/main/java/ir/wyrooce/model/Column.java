@@ -10,7 +10,16 @@ public class Column {
     private String name;
     private String dataType;
     private String dataDefault;
+    private int dataLength;
     private String nullable;
+
+    public Column(String name, String dataType, int dataLength, String dataDefault, String nullable) {
+        this.name = name;
+        this.dataType = dataType;
+        this.dataDefault = dataDefault;
+        this.dataLength = dataLength;
+        this.nullable = nullable;
+    }
 
     public JSONObject toJSON(){
         JSONObject obj = new JSONObject();
@@ -19,6 +28,7 @@ public class Column {
         obj.put("dataType", dataType);
         obj.put("dataDefault", dataDefault);
         obj.put("nullable", nullable);
+        obj.put("dataLength", dataLength);
 
         return obj;
     }
@@ -55,4 +65,10 @@ public class Column {
         this.nullable = nullable;
     }
 
+    @Override
+    public String toString() {
+        return "Column{" +
+                "name='" + name + '\'' +
+                '}';
+    }
 }

@@ -15,6 +15,7 @@ import java.util.ArrayList;
 public class Schema {
     private String name;
     private ArrayList<Table> tables = new ArrayList<Table>();
+    private ArrayList<View> views = new ArrayList<View>();
     private ArrayList<Function> functions = new ArrayList<Function>();
     private ArrayList<Procedure> procedures = new ArrayList<Procedure>();
 
@@ -36,6 +37,14 @@ public class Schema {
         for (Function function : functions) {
             if (function.getName().equals(name))
                 return function;
+        }
+        return null;
+    }
+
+    public Table getTable(String name){
+        for (Table table : tables) {
+            if (table.getName().equals(name))
+                return table;
         }
         return null;
     }
@@ -91,5 +100,27 @@ public class Schema {
     public void createSnapshot() throws FileNotFoundException {
         PrintStream out = new PrintStream(new FileOutputStream(name+".snapshot"));
         out.println(toJSON().toJSONString());
+    }
+
+    public void printTbl(){
+        for (Table table : tables) {
+            System.out.println(table);
+        }
+    }
+
+    public void printView(){
+        for (View view:views){
+            System.out.println(view);
+        }
+    }
+
+    public void addTable(Table table) {
+        if (table != null)
+            tables.add(table);
+    }
+
+    public void addView(View view) {
+        if (view != null)
+            views.add(view);
     }
 }

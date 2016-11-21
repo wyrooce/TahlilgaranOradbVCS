@@ -16,9 +16,10 @@ public class Procedure {
     private String sourceCode;
 
 
-    public Procedure(String name, String digestSourceCode) throws NoSuchAlgorithmException {
+    public Procedure(String name, String sourceCode) throws NoSuchAlgorithmException {
         this.name = name;
-        this.digestSourceCode = digestSourceCode;
+        this.sourceCode = sourceCode;
+        this.digestSourceCode = Util.sha1(sourceCode);
     }
 
     public String getDigestSourceCode() {
@@ -36,17 +37,23 @@ public class Procedure {
     public JSONObject toJSON(){
         JSONObject procedureJSON = new JSONObject();
         procedureJSON.put("digestSourceCode", digestSourceCode);
+        procedureJSON.put("sourceCode", sourceCode);
         procedureJSON.put("name", name);
+
         return procedureJSON;
     }
 
-    public double similarity(Procedure procedure){
+    public double similarity(Procedure procedure) {
         NormalizedLevenshtein nl = new NormalizedLevenshtein();
-        double similarity = nl.similarity(digestSourceCode, procedure.getDigestSourceCode());
-        return similarity*100;
+        double similarity = nl.similarity(sourceCode, procedure.getSourceCode());
+        return similarity * 100;
     }
 
     public boolean equalCode(Procedure procedure){
         return digestSourceCode.equals(procedure.digestSourceCode);
+    }
+
+    public String getSourceCode() {
+        return sourceCode;
     }
 }
