@@ -15,9 +15,9 @@ public class DatabaseAccess {
     private Schema schema;
 
     final static String DB_DRIVER = "oracle.jdbc.driver.OracleDriver";
-    final static String DB_CONNECTION = "jdbc:oracle:thin:@185.23.129.101:1521:orcl";
-    final static String DB_USER = "hami";
-    final static String DB_PASSWORD = "tiAgp3N8F5";
+//    final static String DB_CONNECTION = "jdbc:oracle:thin:@185.23.129.101:1521:orcl";
+//    final static String DB_USER = "akin";
+//    final static String DB_PASSWORD = "akin";
 
 
     private String[] loadSetting(){
@@ -124,7 +124,7 @@ public class DatabaseAccess {
 
     public ArrayList<Function> getFunctionByConnection() throws SQLException, NoSuchAlgorithmException {
         Connection con = getDBConnection();
-        PreparedStatement stm = con.prepareStatement(Util.functionSerouceCodeSQL);
+        PreparedStatement stm = con.prepareStatement(Util.functionSourceCodeSQL);
         ResultSet set = stm.executeQuery();
         ArrayList<Function> resultArray = new ArrayList<Function>();
 

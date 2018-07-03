@@ -1,4 +1,4 @@
 host=192.168.1.8:1521
-username=hami
-password=tiAgp3N8F5
+username=akin
+password=akin
 sid=orcl

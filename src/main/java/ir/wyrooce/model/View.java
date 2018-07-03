@@ -28,7 +28,7 @@ public class View {
     }
 
     public void setSql(String sql) throws NoSuchAlgorithmException {
-        this.sql = sql;
+        this.sql = Util.formatter(sql);
         this.digestSQL = Util.sha1(sql);
     }
 

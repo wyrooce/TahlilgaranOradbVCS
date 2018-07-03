@@ -1,5 +1,12 @@
 package ir.wyrooce.model;
 
+import gudusoft.gsqlparser.EDbVendor;
+import gudusoft.gsqlparser.TGSqlParser;
+import gudusoft.gsqlparser.pp.para.GFmtOpt;
+import gudusoft.gsqlparser.pp.para.GFmtOptFactory;
+import gudusoft.gsqlparser.pp.stmtformattor.FormattorFactory;
+import org.hibernate.jdbc.util.BasicFormatterImpl;
+
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -8,6 +15,8 @@ import java.util.ArrayList;
  * Created by mym on 11/8/16.
  */
 public class Util {
+
+    public static String path = "/home/mym/vcs";
     final public static String viewSQL =
             "SELECT view_name, text\n" +
                     "FROM user_views";
@@ -19,7 +28,7 @@ public class Util {
                     "SELECT object_name \n" +
                     "FROM dba_objects\n" +
                     "WHERE owner = USER AND object_type = 'TABLE')";
-    final public static String procedureSourceCodeSQL =
+    final public static String procedureSource =
             "WITH TMP AS\n" +
                     "  (SELECT lower(SUBSTR(type, 1,1)) type,\n" +
                     "    NAME,\n" +
@@ -42,7 +51,7 @@ public class Util {
                     "ORDER BY LINE).GetClobVal(),','), chr(10), ' '), '&apos;', '''') AS CODe\n" +
                     "FROM TMP\n" +
                     "GROUP BY NAME";
-    final public static String functionSerouceCodeSQL =
+    final public static String functionSource =
             "WITH TMP AS\n" +
                     "  (SELECT lower(SUBSTR(type, 1,1)) type,\n" +
                     "    NAME,\n" +
@@ -66,6 +75,34 @@ public class Util {
                     "ORDER BY LINE).GetClobVal(),','), chr(10), ' '), ' +', ' ') AS CODe\n" +
                     "FROM TMP\n" +
                     "GROUP BY NAME\n";
+    //-----------------------------------------------------------------------------------------
+    final public static String procedureSourceCodeSQL = "with tmp as(\n" +
+            "select distinct name, type \n" +
+            "from user_source\n" +
+            "where type = 'PROCEDURE')\n" +
+            "select name, dbms_metadata.get_ddl(type,name) code\n" +
+            "from tmp";
+    final public static String functionSourceCodeSQL = "with tmp as(\n" +
+            "select distinct name, type \n" +
+            "from user_source\n" +
+            "where type = 'FUNCTION')\n" +
+            "select name, dbms_metadata.get_ddl(type,name) code\n" +
+            "from tmp";
+    final public static String packageSpecSQL = "with tmp as(\n" +
+            "            select distinct name, type\n" +
+            "            from user_source\n" +
+            "            where type LIKE 'PACKAGE')\n" +
+            "            select name, dbms_metadata.get_ddl('PACKAGE_SPEC',name) code, TYPE\n" +
+            "            from tmp;";
+
+    final public static String packageBodySQL = "with tmp as(\n" +
+            "            select distinct name, type\n" +
+            "            from user_source\n" +
+            "            where type LIKE 'PACKAGE')\n" +
+            "            select name, dbms_metadata.get_ddl('PACKAGE',name) code, TYPE\n" +
+            "            from tmp;";
+
+
 
     public static String sha1(String input) throws NoSuchAlgorithmException {
         MessageDigest mDigest = MessageDigest.getInstance("SHA1");
@@ -77,8 +114,24 @@ public class Util {
         return sb.toString();
     }
 
+    public static String formatter2(String sql) {
+        TGSqlParser sqlParser = new TGSqlParser(EDbVendor.dbvoracle);
+        sqlParser.sqltext = sql;
+        String result = null;
+
+        int ret = sqlParser.parse();
+        if (ret == 0) {
+            GFmtOpt option = GFmtOptFactory.newInstance();
+            result = FormattorFactory.pp(sqlParser, option);
+        } else {
+            System.out.println(sqlParser.getErrormessage());
+        }
+        return result;
+    }
+
     public static String formatter(String string) {
-        ArrayList<String> result = new ArrayList<String>();
+        //capital kardan query be joz miyane qoutaion ha
+        /*ArrayList<String> result = new ArrayList<String>();
         string = string.replace("''", "#");
 
         boolean secondVisit = false;
@@ -104,7 +157,11 @@ public class Util {
         for (i = 0; i < result.size(); i++) {
             tmp += result.get(i).replace("#", "''") + " ";
         }
-
-        return tmp;
+        //ba zibasaze hibernate SQL ro ham format mikone
+        String formattedSQL = new BasicFormatterImpl().format(tmp);
+        return formattedSQL;*/
+        return string;
     }
+
+
 }

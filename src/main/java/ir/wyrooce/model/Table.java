@@ -1,8 +1,10 @@
 package ir.wyrooce.model;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+
 
 import java.util.ArrayList;
+import com.cedarsoftware.util.io.JsonWriter;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 
 
 /**
@@ -34,7 +36,18 @@ public class Table {
         }
 
         tableJSON.put("column", columnsJSON);
+
+//        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+//        JsonParser jp = new JsonParser();
+//        JsonElement je = jp.parse(uglyJSONString);
+//        String prettyJsonString = gson.toJson(je);
         return tableJSON;
+    }
+
+    public String getNiceJSON(){
+        JSONObject json = getJSON();
+        String niceFormattedJson = JsonWriter.formatJson(json.toString());
+        return niceFormattedJson;
     }
 
     public String getName() {

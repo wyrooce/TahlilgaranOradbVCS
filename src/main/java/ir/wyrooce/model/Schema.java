@@ -23,17 +23,17 @@ public class Schema {
         this.name = name;
     }
 
-    public Schema(JSONObject schemaJSON){
+    public Schema(JSONObject schemaJSON) {
         name = (String) schemaJSON.get("name");
         JSONArray functionSJONArray = (JSONArray) schemaJSON.get("function");
 
     }
 
-    public Table getTable(int idx){
+    public Table getTable(int idx) {
         return tables.get(idx);
     }
 
-    public Function getFunction(String name){
+    public Function getFunction(String name) {
         for (Function function : functions) {
             if (function.getName().equals(name))
                 return function;
@@ -41,7 +41,7 @@ public class Schema {
         return null;
     }
 
-    public Table getTable(String name){
+    public Table getTable(String name) {
         for (Table table : tables) {
             if (table.getName().equals(name))
                 return table;
@@ -49,7 +49,7 @@ public class Schema {
         return null;
     }
 
-    public Procedure getProcedure(String name){
+    public Procedure getProcedure(String name) {
         for (Procedure procedure : procedures) {
             if (procedure.getName().equals(name))
                 return procedure;
@@ -67,7 +67,7 @@ public class Schema {
             functions.add(function);
     }
 
-    public void printFnc(){
+    public void printFnc() {
         for (Function function : functions) {
             System.out.println(function.getName());
         }
@@ -79,7 +79,7 @@ public class Schema {
         }
     }
 
-    public JSONObject toJSON(){
+    public JSONObject toJSON() {
         JSONObject schema = new JSONObject();
         schema.put("name", name);
 
@@ -97,19 +97,65 @@ public class Schema {
         return schema;
     }
 
+
+    public void classifiedFile() throws FileNotFoundException {
+        String path = Util.path + "/"+ name +"/";
+        PrintStream out = new PrintStream(new FileOutputStream(path + name + "-PRC.sql"));
+        for (int i=0;i<procedures.size();i++){
+            String prc = procedures.get(i).getSourceCode();
+            out.println("--------------------------------------------------------\n"
+                      + "--  DDL for Procedure " + procedures.get(i).getName() + "\n"
+                      + "--------------------------------------------------------");
+            out.println(prc);
+        }
+        out.close();
+
+        out = new PrintStream(new FileOutputStream(path + name + "-FNC.sql"));
+        for (int i=0;i<functions.size();i++){
+            String fnc = functions.get(i).getSourceCode();
+            out.println("--------------------------------------------------------\n"
+                    + "--  DDL for Function " + functions.get(i).getName() + "\n"
+                    + "--------------------------------------------------------");
+            out.println(fnc);
+        }
+        out.close();
+
+        out = new PrintStream(new FileOutputStream(path + name + "-NVW.sql"));
+        for (int i=0;i<views.size();i++){
+            String nvw = views.get(i).getSql();
+            out.println("--------------------------------------------------------\n"
+                    + "--  DDL for View " + views.get(i).getName() + "\n"
+                    + "--------------------------------------------------------");
+            out.println(nvw);
+        }
+        out.close();
+
+        out = new PrintStream(new FileOutputStream(path + name + "-TBL.sql"));
+        for (int i=0;i<tables.size();i++){
+            String tbl = tables.get(i).getNiceJSON();
+            out.println("--------------------------------------------------------\n"
+                    + "--  DDL for Table " + tables.get(i).getName() + "\n"
+                    + "--------------------------------------------------------");
+            out.println(tbl);
+        }
+        out.close();
+    }
+
+
+
     public void createSnapshot() throws FileNotFoundException {
-        PrintStream out = new PrintStream(new FileOutputStream(name+".snapshot"));
+        PrintStream out = new PrintStream(new FileOutputStream(name + ".snapshot"));
         out.println(toJSON().toJSONString());
     }
 
-    public void printTbl(){
+    public void printTbl() {
         for (Table table : tables) {
             System.out.println(table);
         }
     }
 
-    public void printView(){
-        for (View view:views){
+    public void printView() {
+        for (View view : views) {
             System.out.println(view);
         }
     }

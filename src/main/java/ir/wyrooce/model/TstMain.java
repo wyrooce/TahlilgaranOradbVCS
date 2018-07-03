@@ -12,7 +12,7 @@ import java.util.ArrayList;
 public class TstMain {
     public static void main(String[] args) throws NoSuchAlgorithmException, SQLException, FileNotFoundException {
 
-        Schema schema = new Schema("HAMI");
+        Schema schema = new Schema("AKIN");
         DatabaseAccess da = new DatabaseAccess();
 
         ArrayList<Procedure> prc = da.getProcedures("connection");
@@ -42,9 +42,8 @@ public class TstMain {
                 schema.addView(view);
             }
         }
-        schema.printView();
-
-
+        //schema.createSnapshot();
+        schema.classifiedFile();
     }
 
 
