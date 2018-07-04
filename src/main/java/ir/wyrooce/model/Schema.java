@@ -18,9 +18,14 @@ public class Schema {
     private ArrayList<View> views = new ArrayList<View>();
     private ArrayList<Function> functions = new ArrayList<Function>();
     private ArrayList<Procedure> procedures = new ArrayList<Procedure>();
+    private ArrayList<Package> packages = new ArrayList<Package>();
 
     public Schema(String name) {
         this.name = name;
+    }
+
+    public String getName(){
+        return name;
     }
 
     public Schema(JSONObject schemaJSON) {
@@ -67,6 +72,11 @@ public class Schema {
             functions.add(function);
     }
 
+    public void addPackage(Package pkg){
+        if (pkg != null)
+            packages.add(pkg);
+    }
+
     public void printFnc() {
         for (Function function : functions) {
             System.out.println(function.getName());
@@ -97,10 +107,9 @@ public class Schema {
         return schema;
     }
 
-
     public void classifiedFile() throws FileNotFoundException {
         String path = Util.path + "/"+ name +"/";
-        PrintStream out = new PrintStream(new FileOutputStream(path + name + "-PRC.sql"));
+        PrintStream outspec, out = new PrintStream(new FileOutputStream(path + name + "-PRC.sql"));
         for (int i=0;i<procedures.size();i++){
             String prc = procedures.get(i).getSourceCode();
             out.println("--------------------------------------------------------\n"
@@ -139,9 +148,24 @@ public class Schema {
             out.println(tbl);
         }
         out.close();
+
+        out = new PrintStream(new FileOutputStream(path + name + "-PKG.sql"));
+        outspec = new PrintStream(new FileOutputStream(path + name + "-PKG-SPEC.sql"));
+        for (int i=0;i<packages.size();i++){
+            String body = packages.get(i).getBody();
+            String spec = packages.get(i).getSpecification();
+            String title = "--------------------------------------------------------\n"
+                    + "--  DDL for Table " + packages.get(i).getName() + "\n"
+                    + "--------------------------------------------------------";
+            out.println(title);
+            out.println(body);
+
+            outspec.println(title);
+            outspec.println(spec);
+        }
+        out.close();
+        outspec.close();
     }
-
-
 
     public void createSnapshot() throws FileNotFoundException {
         PrintStream out = new PrintStream(new FileOutputStream(name + ".snapshot"));

@@ -12,38 +12,48 @@ import java.util.ArrayList;
 public class TstMain {
     public static void main(String[] args) throws NoSuchAlgorithmException, SQLException, FileNotFoundException {
 
-        Schema schema = new Schema("AKIN");
         DatabaseAccess da = new DatabaseAccess();
+        Schema schema = new Schema(da.getDBName().toUpperCase());
 
-        ArrayList<Procedure> prc = da.getProcedures("connection");
+        ArrayList<Procedure> prc = da.fetchProcedures("connection");
         if (prc != null) {
             for (int i = 0; i < prc.size(); i++) {
                 schema.addProcedure(prc.get(i));
             }
         }
 
-        ArrayList<Function> fnc = da.getFunction("connection");
+        ArrayList<Function> fnc = da.fetchFunction("connection");
         if (fnc != null) {
             for (int i = 0; i < fnc.size(); i++) {
                 schema.addFunction(fnc.get(i));
             }
         }
 
-        ArrayList<Table> tbl = da.getTable("connection");
+        ArrayList<Table> tbl = da.fetchTable("connection");
         if (tbl != null){
             for (Table table : tbl) {
                 schema.addTable(table);
             }
         }
 
-        ArrayList<View> nvw = da.getViews("connection");
+        ArrayList<View> nvw = da.fetchViews("connection");
         if (nvw != null){
             for (View view : nvw) {
                 schema.addView(view);
             }
         }
+
+        ArrayList<Package> pkgs = da.fetchPackages("connection");
+        if (pkgs != null){
+            for (Package pkg : pkgs) {
+                schema.addPackage(pkg);
+            }
+        }
         //schema.createSnapshot();
         schema.classifiedFile();
+        System.out.println("Database ["+schema.getName().toUpperCase()+"] stored!");
+        System.out.println("Default Path: "+Util.path + "/"+schema.getName().toUpperCase());
+
     }
 
 

@@ -95,12 +95,17 @@ public class Util {
             "            select name, dbms_metadata.get_ddl('PACKAGE_SPEC',name) code, TYPE\n" +
             "            from tmp;";
 
-    final public static String packageBodySQL = "with tmp as(\n" +
-            "            select distinct name, type\n" +
-            "            from user_source\n" +
-            "            where type LIKE 'PACKAGE')\n" +
-            "            select name, dbms_metadata.get_ddl('PACKAGE',name) code, TYPE\n" +
-            "            from tmp;";
+    final public static String packageSQL = "WITH tmp\n" +
+            "AS (SELECT DISTINCT\n" +
+            "  name,\n" +
+            "  type\n" +
+            "FROM user_source\n" +
+            "WHERE type LIKE 'PACKAGE')\n" +
+            "SELECT\n" +
+            "  name,\n" +
+            "  dbms_metadata.get_ddl('PACKAGE', name) body,\n" +
+            "  dbms_metadata.get_ddl('PACKAGE_SPEC', name) spec\n" +
+            "FROM tmp";
 
 
 

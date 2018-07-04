@@ -1,61 +1,70 @@
 package ir.wyrooce.model;
 
 import javax.swing.*;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
+import java.io.*;
 import java.security.NoSuchAlgorithmException;
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.Scanner;
+import java.util.Properties;
 
 /**
  * Created by mym on 11/7/16.
  */
+
+
 public class DatabaseAccess {
-    private Schema schema;
 
     final static String DB_DRIVER = "oracle.jdbc.driver.OracleDriver";
+    private String sid;
+    private String password;
+    private String username;
+    private String host;
+
+
 //    final static String DB_CONNECTION = "jdbc:oracle:thin:@185.23.129.101:1521:orcl";
 //    final static String DB_USER = "akin";
 //    final static String DB_PASSWORD = "akin";
 
 
-    private String[] loadSetting(){
-        String[] result = new String[4];
-        Scanner input = null;
+    public DatabaseAccess() {
+        loadSetting();
+    }
+
+    public String getDBName(){
+        return username;
+    }
+
+    private void loadSetting() {
+        Properties prop = new Properties();
+        InputStream input = null;
+
         try {
-            input = new Scanner(new FileReader("setting-vcs.txt"));
-        } catch (FileNotFoundException e) {
-            JOptionPane.showMessageDialog(null, "فایل تنظیمات پیدا نشد");
-            System.exit(1);
-            e.printStackTrace();
-        }
-        while (input.hasNext()) {
-            String tmp = input.nextLine().trim();
-            if (tmp.substring(0, tmp.indexOf("=")).equals("username")) {
-                result[0] = tmp.substring(tmp.indexOf("=")+1).trim();
 
-            } else if (tmp.substring(0, tmp.indexOf("=")).equals("password")) {
-                result[1] = tmp.substring(tmp.indexOf("=")+1).trim();
+            input = new FileInputStream(Util.path+"/Config/setting-vcs.txt");
 
-            } else if (tmp.substring(0, tmp.indexOf("=")).equals("host")) {
-                result[2] = tmp.substring(tmp.indexOf("=")+1).trim();
+            // load a properties file
+            prop.load(input);
 
-            } else if (tmp.substring(0, tmp.indexOf("=")).equals("sid")) {
-                result[3] = tmp.substring(tmp.indexOf("=")+1).trim();
+            // get the property value and print it out
+            username = prop.getProperty("username");
+            password = prop.getProperty("password");
+            sid = prop.getProperty("sid");
+            host = prop.getProperty("host");
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        } finally {
+            if (input != null) {
+                try {
+                    input.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
-        return result;
     }
 
     private Connection getDBConnection() {
-        String[] connectionDescription = loadSetting();
-        for (String con : connectionDescription) {
-            if (con == null){
-                JOptionPane.showMessageDialog(null, "فایل تنظیمات مشکل دارد");
-                System.exit(1);
-            }
-        }
+        //loadSetting();
 
         Connection dbConnection = null;
         try {
@@ -64,8 +73,8 @@ public class DatabaseAccess {
             System.out.println(e.getMessage());
         }
         try {
-            dbConnection = DriverManager.getConnection("jdbc:oracle:thin:@"+connectionDescription[2]+":"+connectionDescription[3]
-                    , connectionDescription[0], connectionDescription[1]);
+            dbConnection = DriverManager.getConnection("jdbc:oracle:thin:@" + host + ":" + sid
+                    , username, password);
             dbConnection.setAutoCommit(true);
             return dbConnection;
         } catch (SQLException e) {
@@ -83,7 +92,7 @@ public class DatabaseAccess {
         ResultSet set = stm.executeQuery();
         ArrayList<View> resultArray = new ArrayList<View>();
 
-        while (set.next()){
+        while (set.next()) {
             View tmp = new View();
             tmp.setName(set.getString(1));
             String sql = set.getString(2);
@@ -94,9 +103,9 @@ public class DatabaseAccess {
         return resultArray;
     }
 
-    public ArrayList<View> getViews(String mode) throws SQLException, NoSuchAlgorithmException {
-        if (mode.equals("connection"))return getViewsByConnection();
-        return getViewsBySnapshot();
+    public ArrayList<View> fetchViews(String mode) throws SQLException, NoSuchAlgorithmException {
+        if (mode.equals("connection")) return getViewsByConnection();
+        return fetchViewsBySnapshot();
     }
 
     public ArrayList<Procedure> getProceduresByConnection() throws SQLException, NoSuchAlgorithmException {
@@ -105,21 +114,21 @@ public class DatabaseAccess {
         ResultSet set = stm.executeQuery();
         ArrayList<Procedure> resultArray = new ArrayList<Procedure>();
 
-        while (set.next()){
+        while (set.next()) {
             resultArray.add(new Procedure(set.getString(1), set.getString(2)));
         }
 
         return resultArray;
     }
 
-    public ArrayList<Procedure> getProcedures(String mode) throws SQLException, NoSuchAlgorithmException {
+    public ArrayList<Procedure> fetchProcedures(String mode) throws SQLException, NoSuchAlgorithmException {
         if (mode.equals("connection")) return getProceduresByConnection();
         else return getProceduresBySnapshot();
     }
 
-    public ArrayList<Function> getFunction(String mode) throws SQLException, NoSuchAlgorithmException {
+    public ArrayList<Function> fetchFunction(String mode) throws SQLException, NoSuchAlgorithmException {
         if (mode.equals("connection")) return getFunctionByConnection();
-        else return getFunctionBySnapshot();
+        else return fetchFunctionBySnapshot();
     }
 
     public ArrayList<Function> getFunctionByConnection() throws SQLException, NoSuchAlgorithmException {
@@ -128,7 +137,7 @@ public class DatabaseAccess {
         ResultSet set = stm.executeQuery();
         ArrayList<Function> resultArray = new ArrayList<Function>();
 
-        while (set.next()){
+        while (set.next()) {
             resultArray.add(new Function(set.getString(1), set.getString(2)));
         }
 
@@ -139,17 +148,17 @@ public class DatabaseAccess {
         return null;
     }
 
-    public ArrayList<Table> getTable(String mode) throws SQLException {
-        if (mode.equals("connection")){
-            return getTableByConnection();
-        }else return getTableBySnapshot();
+    public ArrayList<Table> fetchTable(String mode) throws SQLException {
+        if (mode.equals("connection")) {
+            return fetchTableByConnection();
+        } else return fetchTableBySnapshot();
     }
 
-    public ArrayList<Table> getTableBySnapshot(){
+    public ArrayList<Table> fetchTableBySnapshot() {
         return null;
     }
 
-    public ArrayList<Table> getTableByConnection() throws SQLException {
+    public ArrayList<Table> fetchTableByConnection() throws SQLException {
         Connection con = getDBConnection();
         PreparedStatement stm = con.prepareStatement(Util.tableProperty);
         ResultSet set = stm.executeQuery();
@@ -157,16 +166,16 @@ public class DatabaseAccess {
         String tblName = null;
         boolean flag = false;
 
-        while (set.next()){
+        while (set.next()) {
             tblName = set.getString(1);
-            for (Table tbl : resultArray){
-                if (tbl.getName().equals(tblName)){
+            for (Table tbl : resultArray) {
+                if (tbl.getName().equals(tblName)) {
                     tbl.addColumn(new Column(set.getString(2), set.getString(3), set.getInt(4), set.getString(6), set.getString(5)));
                     flag = true;
                     break;
                 }
             }
-            if (!flag){
+            if (!flag) {
                 Table tbl = new Table(tblName);
                 tbl.addColumn(new Column(set.getString(2), set.getString(3), set.getInt(4), set.getString(6), set.getString(5)));
                 resultArray.add(tbl);
@@ -177,11 +186,33 @@ public class DatabaseAccess {
         return resultArray;
     }
 
-    public ArrayList<Function> getFunctionBySnapshot() {
+    public ArrayList<Function> fetchFunctionBySnapshot() {
         return null;
     }
 
-    public ArrayList<View> getViewsBySnapshot() {
+    public ArrayList<View> fetchViewsBySnapshot() {
         return null;
+    }
+
+    public ArrayList<Package> fetchPackages(String mode) throws SQLException {
+        if (mode.equals("connection")) {
+            return fetchPackagesByConnection();
+        } else return fetchPackagesBySnapshot();
+    }
+
+    private ArrayList<Package> fetchPackagesBySnapshot() {
+        return null;
+    }
+
+    private ArrayList<Package> fetchPackagesByConnection() throws SQLException {
+        Connection con = getDBConnection();
+        PreparedStatement stm = con.prepareStatement(Util.packageSQL);
+        ResultSet set = stm.executeQuery();
+        ArrayList<Package> resultArray = new ArrayList<Package>();
+
+        while (set.next()) {
+            resultArray.add(new Package(set.getString(1), set.getString(2), set.getString(3)));
+        }
+        return resultArray;
     }
 }
