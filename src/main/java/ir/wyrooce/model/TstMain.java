@@ -1,6 +1,6 @@
 package ir.wyrooce.model;
 
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -10,7 +10,7 @@ import java.util.ArrayList;
  */
 
 public class TstMain {
-    public static void main(String[] args) throws NoSuchAlgorithmException, SQLException, FileNotFoundException {
+    public static void main(String[] args) throws NoSuchAlgorithmException, SQLException, IOException {
 
         DatabaseAccess da = new DatabaseAccess();
         Schema schema = new Schema(da.getDBName().toUpperCase());
@@ -53,6 +53,10 @@ public class TstMain {
         schema.classifiedFile();
         System.out.println("Database ["+schema.getName().toUpperCase()+"] stored!");
         System.out.println("Default Path: "+Util.path + "/"+schema.getName().toUpperCase());
+        System.out.println("Press Enter to exit...");
+        System.in.read();
+
+//        System.out.println(Util.formatter2(schema.getView(0).getSql()));
 
     }
 

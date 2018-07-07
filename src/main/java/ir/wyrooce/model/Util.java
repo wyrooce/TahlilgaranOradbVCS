@@ -5,18 +5,53 @@ import gudusoft.gsqlparser.TGSqlParser;
 import gudusoft.gsqlparser.pp.para.GFmtOpt;
 import gudusoft.gsqlparser.pp.para.GFmtOptFactory;
 import gudusoft.gsqlparser.pp.stmtformattor.FormattorFactory;
-import org.hibernate.jdbc.util.BasicFormatterImpl;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
+import java.util.Properties;
 
 /**
  * Created by mym on 11/8/16.
  */
 public class Util {
-
     public static String path = "/home/mym/vcs";
+    public static String defaultPath = "/home/mym/vcs";
+
+    public static Info loadSetting() {
+        Properties prop = new Properties();
+        InputStream input = null;
+        Info info = new Info();
+
+        try {
+
+            input = new FileInputStream(Util.defaultPath+"/Config/setting-vcs.txt");
+
+            // load a properties file
+            prop.load(input);
+
+            // get the property value and print it out
+            info.username = prop.getProperty("username");
+            info.password = prop.getProperty("password");
+            info.sid = prop.getProperty("sid");
+            info.host = prop.getProperty("host");
+            path = prop.getProperty("path");
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        } finally {
+            if (input != null) {
+                try {
+                    input.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return info;
+    }
+
     final public static String viewSQL =
             "SELECT view_name, text\n" +
                     "FROM user_views";
@@ -130,6 +165,7 @@ public class Util {
             result = FormattorFactory.pp(sqlParser, option);
         } else {
             System.out.println(sqlParser.getErrormessage());
+            result = sql;
         }
         return result;
     }

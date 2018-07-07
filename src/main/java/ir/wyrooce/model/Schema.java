@@ -3,6 +3,7 @@ package ir.wyrooce.model;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
@@ -109,6 +110,11 @@ public class Schema {
 
     public void classifiedFile() throws FileNotFoundException {
         String path = Util.path + "/"+ name +"/";
+        File dir = new File(path);
+        if (!dir.exists() || !dir.isDirectory()){
+            dir.mkdir();
+            System.out.println("Directory "+dir.getAbsolutePath()+" is created.");
+        }
         PrintStream outspec, out = new PrintStream(new FileOutputStream(path + name + "-PRC.sql"));
         for (int i=0;i<procedures.size();i++){
             String prc = procedures.get(i).getSourceCode();
@@ -192,5 +198,13 @@ public class Schema {
     public void addView(View view) {
         if (view != null)
             views.add(view);
+    }
+
+    public Package getPackage(int idx) {
+        return packages.get(idx);
+    }
+
+    public View getView(int idx) {
+        return views.get(idx);
     }
 }

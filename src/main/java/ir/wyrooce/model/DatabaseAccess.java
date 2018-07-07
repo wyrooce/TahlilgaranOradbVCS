@@ -1,66 +1,25 @@
 package ir.wyrooce.model;
 
 import javax.swing.*;
-import java.io.*;
 import java.security.NoSuchAlgorithmException;
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.Properties;
 
 /**
  * Created by mym on 11/7/16.
  */
 
-
 public class DatabaseAccess {
 
     final static String DB_DRIVER = "oracle.jdbc.driver.OracleDriver";
-    private String sid;
-    private String password;
-    private String username;
-    private String host;
-
-
-//    final static String DB_CONNECTION = "jdbc:oracle:thin:@185.23.129.101:1521:orcl";
-//    final static String DB_USER = "akin";
-//    final static String DB_PASSWORD = "akin";
-
+    Info info = new Info();
 
     public DatabaseAccess() {
-        loadSetting();
+        info = Util.loadSetting();
     }
 
     public String getDBName(){
-        return username;
-    }
-
-    private void loadSetting() {
-        Properties prop = new Properties();
-        InputStream input = null;
-
-        try {
-
-            input = new FileInputStream(Util.path+"/Config/setting-vcs.txt");
-
-            // load a properties file
-            prop.load(input);
-
-            // get the property value and print it out
-            username = prop.getProperty("username");
-            password = prop.getProperty("password");
-            sid = prop.getProperty("sid");
-            host = prop.getProperty("host");
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        } finally {
-            if (input != null) {
-                try {
-                    input.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
+        return info.username;
     }
 
     private Connection getDBConnection() {
@@ -73,8 +32,8 @@ public class DatabaseAccess {
             System.out.println(e.getMessage());
         }
         try {
-            dbConnection = DriverManager.getConnection("jdbc:oracle:thin:@" + host + ":" + sid
-                    , username, password);
+            dbConnection = DriverManager.getConnection("jdbc:oracle:thin:@" + info.host + ":" + info.sid
+                    , info.username, info.password);
             dbConnection.setAutoCommit(true);
             return dbConnection;
         } catch (SQLException e) {
@@ -82,7 +41,6 @@ public class DatabaseAccess {
             System.out.println(e.getMessage());
             System.exit(1);
         }
-
         return dbConnection;
     }
 
