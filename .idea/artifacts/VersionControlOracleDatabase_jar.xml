@@ -1,0 +1,15 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="VersionControlOracleDatabase:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/VersionControlOracleDatabase_jar</output-path>
+    <root id="archive" name="VersionControlOracleDatabase.jar">
+      <element id="module-output" name="VersionControlOracleDatabase" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/gsp.jar" path-in-jar="/" />
+      <element id="library" level="project" name="json-20180130" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/ojdbc6.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/json-io-4.10.0.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/json-simple-1.1.1.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/hibernate-core-3.5.0-CR-1.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/java-string-similarity-0.19.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>
