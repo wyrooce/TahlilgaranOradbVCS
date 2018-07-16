@@ -58,7 +58,6 @@ public class Main {
         System.in.read();
 
 //        System.out.println(Util.formatter2(schema.getView(0).getSql()));
-
     }
 }
 

@@ -19,7 +19,18 @@ public class Util {
     public static String path = "/home/mym/vcs";
     public static String defaultPath = "/home/mym/vcs";
 
+
+
+    public static String getDefaultPath(){
+        String windowsPath = " C:\\Users\\morteza2\\Documents ";
+        String linuxPath = "/home/mym/vcs";
+
+        return path;
+
+    }
+
     public static Info loadSetting() {
+
         Properties prop = new Properties();
         InputStream input = null;
         Info info = new Info();

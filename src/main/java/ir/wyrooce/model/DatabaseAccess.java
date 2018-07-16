@@ -1,9 +1,13 @@
 package ir.wyrooce.model;
 
 import javax.swing.*;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.security.NoSuchAlgorithmException;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 /**
  * Created by mym on 11/7/16.
@@ -14,7 +18,7 @@ public class DatabaseAccess {
     final static String DB_DRIVER = "oracle.jdbc.driver.OracleDriver";
     Info info = new Info();
 
-    public DatabaseAccess() {
+    public DatabaseAccess() throws IOException {
         info = Util.loadSetting();
     }
 
