@@ -1,36 +1,68 @@
 package ir.wyrooce.model;
 
-import org.hibernate.jdbc.util.BasicFormatterImpl;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.sql.SQLException;
+import java.util.ArrayList;
+
+/**
+ * Created by mym on 11/8/16.
+ */
 
 public class Main {
-    public static void main(String[] args) {
-        System.out.println("Salaam");
+    public static void main(String[] args) throws NoSuchAlgorithmException, SQLException, IOException {
 
-        String sql = "\n" +
-                "  CREATE OR REPLACE FUNCTION \"PRAGG\".\"FNC_DASHBOARD_PROFILE\" return varchar2 as \n" +
-                "--------------------------------------------------------------------------------\n" +
-                "  /*\n" +
-                "  Programmer Name:  navid\n" +
-                "  Editor Name: \n" +
-                "  Release Date/Time:1396/03/22-15:00\n" +
-                "  Edit Name: \n" +
-                "  Version: 1\n" +
-                "  Category:2\n" +
-                "  Description:\n" +
-                "  */\n" +
-                "--------------------------------------------------------------------------------\n" +
-                "begin\n" +
-                "  return 'SELECT REF_LEDGER_PROFILE as \"ledgerProfileId\",\n" +
-                "  REF_TIMING_PROFILE as \"timingProfileId\",\n" +
-                "  ID as \"id\",\n" +
-                "  TYPEE as \"type\"\n" +
-                "FROM                TBL_DASHBOARD_PROFILE';\n" +
-                "end fnc_dashboard_profile;";
-        System.out.println(Util.formatter2(sql));
-        System.out.println("-----------------------------------------------------");
-        System.out.println("-----------------------------------------------------");
-        System.out.println(Util.formatter(sql));
+        DatabaseAccess da = new DatabaseAccess();
+        Schema schema = new Schema(da.getDBName().toUpperCase());
 
+        ArrayList<Procedure> prc = da.fetchProcedures("connection");
+        if (prc != null) {
+            for (int i = 0; i < prc.size(); i++) {
+                schema.addProcedure(prc.get(i));
+            }
+        }
+
+        ArrayList<Function> fnc = da.fetchFunction("connection");
+        if (fnc != null) {
+            for (int i = 0; i < fnc.size(); i++) {
+                schema.addFunction(fnc.get(i));
+            }
+        }
+
+        ArrayList<Table> tbl = da.fetchTable("connection");
+        if (tbl != null){
+            for (Table table : tbl) {
+                schema.addTable(table);
+            }
+        }
+
+        ArrayList<View> nvw = da.fetchViews("connection");
+        if (nvw != null){
+            for (View view : nvw) {
+                schema.addView(view);
+            }
+        }
+
+        ArrayList<Package> pkgs = da.fetchPackages("connection");
+        if (pkgs != null){
+            for (Package pkg : pkgs) {
+                schema.addPackage(pkg);
+            }
+        }
+        //schema.createSnapshot();
+        schema.classifiedFile();
+        System.out.println("Database ["+schema.getName().toUpperCase()+"] stored!");
+        System.out.println("Default Path: "+Util.path + "/"+schema.getName().toUpperCase());
+        System.out.println("Press Enter to exit...");
+        System.in.read();
+
+//        System.out.println(Util.formatter2(schema.getView(0).getSql()));
 
     }
 }
+
+
+
+
+

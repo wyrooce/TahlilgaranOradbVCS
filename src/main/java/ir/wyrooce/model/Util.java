@@ -6,12 +6,11 @@ import gudusoft.gsqlparser.pp.para.GFmtOpt;
 import gudusoft.gsqlparser.pp.para.GFmtOptFactory;
 import gudusoft.gsqlparser.pp.stmtformattor.FormattorFactory;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Properties;
+import java.util.Scanner;
 
 /**
  * Created by mym on 11/8/16.
@@ -26,18 +25,28 @@ public class Util {
         Info info = new Info();
 
         try {
-
-            input = new FileInputStream(Util.defaultPath+"/Config/setting-vcs.txt");
-
+//            input = new FileInputStream("src/main/java/ir/wyrooce/model/path.txt");
+            File defaultPathFile = new File("resource/path.txt");
+            Scanner in = new Scanner(defaultPathFile);
+            path = in.nextLine();
+            File file = new File(path);
+            if (file.exists() && file.isDirectory()){
+                path += "/vcs";
+                File config = new File(path+"/Config");
+                config.mkdir();
+            }
+            input = new FileInputStream(Util.path + "/Config/setting-vcs.txt");
             // load a properties file
             prop.load(input);
-
             // get the property value and print it out
             info.username = prop.getProperty("username");
             info.password = prop.getProperty("password");
             info.sid = prop.getProperty("sid");
             info.host = prop.getProperty("host");
-            path = prop.getProperty("path");
+            //path = prop.getProperty("path");
+        } catch (FileNotFoundException ex){
+            System.out.println("File not found");
+            ex.printStackTrace();
         } catch (IOException ex) {
             ex.printStackTrace();
         } finally {
