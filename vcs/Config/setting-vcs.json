@@ -1,0 +1,23 @@
+{
+  "type": "oracle",
+  "host": "192.168.1.8:1521",
+  "sid": "orcl",
+  "users": [
+    {
+      "name": "akin",
+      "password": "akin"
+    },
+    {
+      "name": "pragg",
+      "password": "pragg"
+    },
+    {
+      "name": "credit_risk",
+      "password": "credit_risk"
+    },
+    {
+      "name": "dynamic_lq",
+      "password": "dynamic_lq"
+    }
+  ]
+}

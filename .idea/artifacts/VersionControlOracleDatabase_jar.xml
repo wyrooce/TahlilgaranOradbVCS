@@ -10,8 +10,10 @@
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/hibernate-core-3.5.0-CR-1.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/java-string-similarity-0.19.jar" path-in-jar="/" />
       <element id="library" level="project" name="json-20180130" />
-      <element id="directory" name="resource">
-        <element id="dir-copy" path="$PROJECT_DIR$/resource" />
+      <element id="directory" name="vcs">
+        <element id="directory" name="Config">
+          <element id="file-copy" path="$PROJECT_DIR$/vcs/Config/setting-vcs.json" />
+        </element>
       </element>
     </root>
   </artifact>

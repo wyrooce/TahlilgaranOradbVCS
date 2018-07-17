@@ -1,0 +1,915 @@
+--------------------------------------------------------
+--  DDL for Table TBL_DEPOSIT
+--------------------------------------------------------
+{
+  "name":"TBL_DEPOSIT",
+  "column":[
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"REF_RATE",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"REF_BRANCH",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"REF_DEPOSIT_ACCOUNTING",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"MODALITY_TYPE",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"RATE",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":7,
+      "dataType":"DATE",
+      "name":"OPENING_DATE",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"BALANCE",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":7,
+      "dataType":"DATE",
+      "name":"DUE_DATE",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":20,
+      "dataType":"VARCHAR2",
+      "name":"REF_CUSTOMER",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"REF_CURRENCY",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"REF_DEPOSIT_TYPE",
+      "dataDefault":null
+    },
+    {
+      "nullable":"N",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"DEP_ID",
+      "dataDefault":null
+    }
+  ]
+}
+--------------------------------------------------------
+--  DDL for Table TBL_LOAN
+--------------------------------------------------------
+{
+  "name":"TBL_LOAN",
+  "column":[
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"REF_BRANCH",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":20,
+      "dataType":"VARCHAR2",
+      "name":"REF_CUSTOMER",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"REF_CURRENCY",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":7,
+      "dataType":"DATE",
+      "name":"OPENING_DATE",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"APPROVED_AMOUNT",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"REF_LOAN_ACCOUNTING",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":20,
+      "dataType":"VARCHAR2",
+      "name":"RATE",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"OVERDUE_AMOUNT",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"DEFERRED_AMOUNT",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"DOUBTFUL_AMOUNT",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"REF_RATE",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"REF_LOAN_TYPE",
+      "dataDefault":null
+    },
+    {
+      "nullable":"N",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"LON_ID",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"CURRENT_AMOUNT",
+      "dataDefault":null
+    }
+  ]
+}
+--------------------------------------------------------
+--  DDL for Table TBL_LOAN_PAYMENT
+--------------------------------------------------------
+{
+  "name":"TBL_LOAN_PAYMENT",
+  "column":[
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"PROFIT_AMOUNT",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":7,
+      "dataType":"DATE",
+      "name":"DUE_DATE",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"AMOUNT",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"PAYMENT_NUMBER",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"REF_LON_ID",
+      "dataDefault":null
+    }
+  ]
+}
+--------------------------------------------------------
+--  DDL for Table TBL_DEPOSIT_ACCOUNTING
+--------------------------------------------------------
+{
+  "name":"TBL_DEPOSIT_ACCOUNTING",
+  "column":[
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"LEDGER_CODE_PROFIT",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"LEDGER_CODE_SELF",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"DEP_ACC_ID",
+      "dataDefault":null
+    }
+  ]
+}
+--------------------------------------------------------
+--  DDL for Table TBL_LOAN_ACCOUNTING
+--------------------------------------------------------
+{
+  "name":"TBL_LOAN_ACCOUNTING",
+  "column":[
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"LON_ACC_ID",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"LEDGER_CODE_SELF",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"LEDGER_CODE_PROFIT",
+      "dataDefault":null
+    }
+  ]
+}
+--------------------------------------------------------
+--  DDL for Table TBL_DEPOSIT_INTEREST_PAYMENT
+--------------------------------------------------------
+{
+  "name":"TBL_DEPOSIT_INTEREST_PAYMENT",
+  "column":[
+    {
+      "nullable":"Y",
+      "dataLength":7,
+      "dataType":"DATE",
+      "name":"DUE_DATE",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"PROFIT_AMOUNT",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"REF_DEP_ID",
+      "dataDefault":null
+    }
+  ]
+}
+--------------------------------------------------------
+--  DDL for Table TBL_MODALITY_TYPE
+--------------------------------------------------------
+{
+  "name":"TBL_MODALITY_TYPE",
+  "column":[
+    {
+      "nullable":"Y",
+      "dataLength":100,
+      "dataType":"VARCHAR2",
+      "name":"NAME",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":200,
+      "dataType":"VARCHAR2",
+      "name":"MODALITY_TYPE",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"VALIDITY_DURATION",
+      "dataDefault":null
+    },
+    {
+      "nullable":"N",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"ID",
+      "dataDefault":null
+    }
+  ]
+}
+--------------------------------------------------------
+--  DDL for Table TEST
+--------------------------------------------------------
+{
+  "name":"TEST",
+  "column":[
+    {
+      "nullable":"N",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"COL1",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"COL2",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"COL5",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"COL4",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":150,
+      "dataType":"VARCHAR2",
+      "name":"COL3",
+      "dataDefault":null
+    }
+  ]
+}
+--------------------------------------------------------
+--  DDL for Table CBI_TO_ID
+--------------------------------------------------------
+{
+  "name":"CBI_TO_ID",
+  "column":[
+    {
+      "nullable":"Y",
+      "dataLength":5,
+      "dataType":"VARCHAR2",
+      "name":"CODE",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"ID",
+      "dataDefault":null
+    }
+  ]
+}
+--------------------------------------------------------
+--  DDL for Table TBL_MAP_CBK
+--------------------------------------------------------
+{
+  "name":"TBL_MAP_CBK",
+  "column":[
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"CODE_SARFASL_ASL",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":1000,
+      "dataType":"VARCHAR2",
+      "name":"DESCRIPTION",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"TYPE",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"CODE_SARFASL_SUD",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"REF_NOE",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"ID",
+      "dataDefault":null
+    }
+  ]
+}
+--------------------------------------------------------
+--  DDL for Table TBL_VALID_CBI_DB
+--------------------------------------------------------
+{
+  "name":"TBL_VALID_CBI_DB",
+  "column":[
+    {
+      "nullable":"Y",
+      "dataLength":10,
+      "dataType":"VARCHAR2",
+      "name":"NOE_AGHD",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":9,
+      "dataType":"VARCHAR2",
+      "name":"NAHVE_TAJMI",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":60,
+      "dataType":"VARCHAR2",
+      "name":"NAM_HESAB",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":5,
+      "dataType":"VARCHAR2",
+      "name":"CBI_DB",
+      "dataDefault":null
+    }
+  ]
+}
+--------------------------------------------------------
+--  DDL for Table SEPORDE
+--------------------------------------------------------
+{
+  "name":"SEPORDE",
+  "column":[
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"REF_DEPOSIT_TYPE",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"REF_BRANCH",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"REF_CUSTOMER",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"BALANCE",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"ID",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":7,
+      "dataType":"DATE",
+      "name":"DUE_DATE",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":20,
+      "dataType":"VARCHAR2",
+      "name":"CBI",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"RATE",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":7,
+      "dataType":"DATE",
+      "name":"OPENING_DATE",
+      "dataDefault":null
+    },
+    {
+      "nullable":"N",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"DEP_ID",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"REF_CURRENCY",
+      "dataDefault":null
+    }
+  ]
+}
+--------------------------------------------------------
+--  DDL for Table TBL_API_NOE_SEPORDE
+--------------------------------------------------------
+{
+  "name":"TBL_API_NOE_SEPORDE",
+  "column":[
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"BOLAND_YA_KUTA",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":50,
+      "dataType":"VARCHAR2",
+      "name":"NAM",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":20,
+      "dataType":"VARCHAR2",
+      "name":"NAHVE_TOZIE",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"NOE_SEPORDE",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"RATE",
+      "dataDefault":null
+    }
+  ]
+}
+--------------------------------------------------------
+--  DDL for Table TBL_SEPORDE_MODATDAR
+--------------------------------------------------------
+{
+  "name":"TBL_SEPORDE_MODATDAR",
+  "column":[
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"TAFKIK",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"NOE_SEPORDE",
+      "dataDefault":null
+    }
+  ]
+}
+--------------------------------------------------------
+--  DDL for Table TBL_SEPORDE_ROZ_SHOMAR
+--------------------------------------------------------
+{
+  "name":"TBL_SEPORDE_ROZ_SHOMAR",
+  "column":[
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"TAFKIK",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":50,
+      "dataType":"VARCHAR2",
+      "name":"NAM",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"NOE_SEPORDE",
+      "dataDefault":null
+    }
+  ]
+}
+--------------------------------------------------------
+--  DDL for Table TBL_MELAK_SANAD
+--------------------------------------------------------
+{
+  "name":"TBL_MELAK_SANAD",
+  "column":[
+    {
+      "nullable":"Y",
+      "dataLength":100,
+      "dataType":"VARCHAR2",
+      "name":"MELAK_SANAD",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"MELAK_SANAD_NUM",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":20,
+      "dataType":"VARCHAR2",
+      "name":"ID",
+      "dataDefault":null
+    }
+  ]
+}
+--------------------------------------------------------
+--  DDL for Table TBL_SHIVE_NEGASHT_IFRS
+--------------------------------------------------------
+{
+  "name":"TBL_SHIVE_NEGASHT_IFRS",
+  "column":[
+    {
+      "nullable":"Y",
+      "dataLength":20,
+      "dataType":"VARCHAR2",
+      "name":"YEK_MAH",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":20,
+      "dataType":"VARCHAR2",
+      "name":"YEK_TA_SEMAH",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":20,
+      "dataType":"VARCHAR2",
+      "name":"SEMAH_TA_YEKSAL",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"REF_SARFASL",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"REF_PARENT",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"DEPTH",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":20,
+      "dataType":"VARCHAR2",
+      "name":"BEDONE_JARIAN",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":200,
+      "dataType":"VARCHAR2",
+      "name":"NAME",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":20,
+      "dataType":"VARCHAR2",
+      "name":"YEK_TA_5SAL",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":20,
+      "dataType":"VARCHAR2",
+      "name":"BISHTAR_AZ_5SAL",
+      "dataDefault":null
+    }
+  ]
+}
+--------------------------------------------------------
+--  DDL for Table TEJARAT_GL
+--------------------------------------------------------
+{
+  "name":"TEJARAT_GL",
+  "column":[
+    {
+      "nullable":"Y",
+      "dataLength":7,
+      "dataType":"DATE",
+      "name":"TARIKH",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"DEPTH",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"MANDE",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"FATHER_ID",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":150,
+      "dataType":"VARCHAR2",
+      "name":"NAME",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"ID",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":20,
+      "dataType":"VARCHAR2",
+      "name":"CODE",
+      "dataDefault":null
+    }
+  ]
+}
+--------------------------------------------------------
+--  DDL for Table TBL_TREENODE_TEJARAT_5
+--------------------------------------------------------
+{
+  "name":"TBL_TREENODE_TEJARAT_5",
+  "column":[
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"ID",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":20,
+      "dataType":"VARCHAR2",
+      "name":"CODE",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":90,
+      "dataType":"VARCHAR2",
+      "name":"NAME",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"FATHER_ID",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"TYPE",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":22,
+      "dataType":"NUMBER",
+      "name":"DEPTH",
+      "dataDefault":null
+    },
+    {
+      "nullable":"Y",
+      "dataLength":100,
+      "dataType":"VARCHAR2",
+      "name":"NAME2",
+      "dataDefault":null
+    }
+  ]
+}

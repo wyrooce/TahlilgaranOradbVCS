@@ -1,0 +1,1499 @@
+--------------------------------------------------------
+--  DDL for Procedure PRC_TRANSFER_PAYMENT
+--------------------------------------------------------
+
+  CREATE OR REPLACE PROCEDURE "AKIN"."PRC_TRANSFER_PAYMENT" ( RUNDATE IN DATE )
+  /*
+  Programmer Name: morteza sahi
+  Release Date/Time:1396/05/12-10:00
+  Version:
+  Category: 
+  Description: enteghal be jadavel aghsat 
+  */ AS
+ LOC_S         TIMESTAMP;
+ LOC_F         TIMESTAMP;
+ LOC_MEGHDAR   NUMBER;
+BEGIN
+ EXECUTE IMMEDIATE 'truncate table akin.TBL_LOAN_PAYMENT';
+ LOC_S   := SYSTIMESTAMP;
+    /*** asl ghest va sude ghest ra az jadavele bank khonde va be akin miriza***/
+ INSERT
+    /*+ PARALLEL(AUTO) */ INTO AKIN.TBL_LOAN_PAYMENT (
+  REF_LON_ID
+ ,DUE_DATE
+ ,PROFIT_AMOUNT
+ ,AMOUNT
+ ) SELECT
+  P.ABRNCHCOD ||
+  P.LNMINORTP ||
+  P.CFCIFNO ||
+  P.CRSERIAL AS TASHILAT
+ ,P.PAY_DATE PAY_DATE
+ ,P.PAY_PROFIT PAY_PROFIT
+ ,P.PAY_AMOUNT - P.PAY_PROFIT PAY_AMOUNT
+ FROM DADEKAVAN_DAY.PAYMENT P
+ WHERE P.PAY_AMOUNT - P.PAY_PROFIT > 0;
+/**/
+/*       LOC_F := SYSTIMESTAMP;*/
+/*       LOC_MEGHDAR := SQL%ROWCOUNT;*/
+/*       HAMI.PRC_LOG('PAY_CNT',LOC_MEGHDAR,USER,$$PLSQL_UNIT,$$PLSQL_LINE,NULL);*/
+/*       HAMI.PRC_LOG('PAY_TIME',HAMI.FNC_MODAT_EJRA(LOC_S,LOC_F),USER,$$PLSQL_UNIT,$$PLSQL_LINE,NULL);*/
+/*       SELECT COUNT(*)-LOC_MEGHDAR INTO LOC_MEGHDAR FROM DADEKAVAN_DAY.PAYMENT;*/
+/*       HAMI.PRC_LOG('PAY_IGN_CNT',LOC_MEGHDAR,USER,$$PLSQL_UNIT,$$PLSQL_LINE,NULL);*/
+/*       */
+/*EXCEPTION */
+/*WHEN OTHERS THEN*/
+/*RAISE;*/
+
+END PRC_TRANSFER_PAYMENT;
+--------------------------------------------------------
+--  DDL for Procedure PRC_TRANSFER_ACCOUNTING
+--------------------------------------------------------
+
+  CREATE OR REPLACE PROCEDURE "AKIN"."PRC_TRANSFER_ACCOUNTING" 
+AS
+  /*
+  Programmer Name: morteza sahi
+  Release Date/Time:1396/05/09-10:00
+  Version:
+  Category: 
+  Description: enteghal be jadavel hesabdari 
+  */
+  
+ LOC_S  TIMESTAMP;
+ LOC_F  TIMESTAMP;
+ LOC_MEGHDAR NUMBER;
+ 
+
+BEGIN
+/****  az jadval  SEPORDE_DAFTAR_KOL bar asas nahveie ke bank gofte har noe seporde be yek code sarfasl sod va yek code sarfasl asl negasht mishavad ****/
+
+  EXECUTE IMMEDIATE 'truncate table  akin.TBL_DEPOSIT_ACCOUNTING';
+   LOC_S := SYSTIMESTAMP;
+  INSERT INTO akin.TBL_DEPOSIT_ACCOUNTING--- hesabdari SEPORDE
+  (SELECT * FROM
+(  SELECT substr(dp_type_code,3,4)  as ref_seporde ,to_char(rel_type) AS s, glcode
+  FROM DADEKAVAN_DAY.seporde_daftar_kol )
+pivot 
+(
+ sum(glcode)
+  FOR s
+  IN ( 'حساب اصلي' AS asl,'حساب سود علي الحساب' AS sud)
+) where asl is not null
+    );
+       LOC_F := SYSTIMESTAMP;
+       LOC_MEGHDAR := SQL%ROWCOUNT;
+       HAMI.PRC_LOG('DEP_ACC_CNT', LOC_MEGHDAR, USER, $$PLSQL_UNIT, $$PLSQL_LINE, NULL);
+       HAMI.PRC_LOG('DEP_ACC_TIME', HAMI.FNC_MODAT_EJRA(LOC_S, LOC_F), USER, $$PLSQL_UNIT, $$PLSQL_LINE, NULL);
+
+  ------------------------------------------------------------------
+    EXECUTE IMMEDIATE 'truncate table  akin.TBL_LOAN_ACCOUNTING';
+/****  az jadval  TASHILAT_DAFTAR_KOL bar asas nahveie ke bank gofte har noe TASHILAT be yek code sarfasl sod va yek code sarfasl asl negasht mishavad ****/
+
+  LOC_S := SYSTIMESTAMP;
+  INSERT
+  INTO akin.TBL_LOAN_ACCOUNTING ---HESABDARI_TASHILAT
+   (SELECT * FROM
+(
+  SELECT substr(DP_TYPE_CODE,3,4)  as ref_tashilat ,to_char(REL_TYPE) AS s,
+glcode
+  FROM DADEKAVAN_DAY.tashilat_daftar_kol where   substr(DP_TYPE_CODE,0,3) ='L33'
+ )
+pivot 
+(
+ max(glcode)
+  FOR s
+  IN ( 'اصلي' AS asl,'سود قطعي' AS sud)
+) where asl is not null
+    )
+    UNION    
+  ( SELECT * FROM
+( SELECT substr(DP_TYPE_CODE,3,4)  as ref_tashilat ,to_char(REL_TYPE) AS s, glcode
+  FROM DADEKAVAN_DAY.tashilat_daftar_kol where substr(DP_TYPE_CODE,0,3) ='L34' )
+pivot 
+( max(glcode)
+  FOR s
+  IN ( 'اصلي' AS asl,'سود قطعي' AS sud)
+) where asl is not null
+ )
+ union
+ 
+  ( SELECT * FROM
+( SELECT substr(DP_TYPE_CODE,3,4)  as ref_tashilat ,to_char(REL_TYPE) AS s, glcode
+  FROM DADEKAVAN_DAY.tashilat_daftar_kol where substr(DP_TYPE_CODE,0,3) ='L36' )
+pivot 
+( max(glcode)
+  FOR s
+  IN ( 'اصلي' AS asl,'سود قطعي' AS sud)
+) where asl is not null
+ );
+ commit;
+  INSERT
+  INTO  akin.TBL_LOAN_ACCOUNTING
+(SELECT ref_tashilat,asl,case when sud is null then sud1 else sud end as sud FROM
+(
+  SELECT substr(DP_TYPE_CODE,3,4)  as ref_tashilat ,to_char(REL_TYPE) AS s,
+glcode
+  FROM DADEKAVAN_DAY.tashilat_daftar_kol where substr(DP_TYPE_CODE,0,3) ='L32' -- or substr(DP_TYPE_CODE,0,3) ='L33' 
+ )
+pivot 
+(
+ max(glcode)
+  FOR s
+  IN ( 'اصلي' AS asl,'کارمزد' AS sud,'کارمزد دريافتي' as sud1)
+) where asl is not null
+    );
+  
+       LOC_F := SYSTIMESTAMP;
+       LOC_MEGHDAR := SQL%ROWCOUNT;
+       HAMI.PRC_LOG('LOAN_ACC_CNT', LOC_MEGHDAR, USER, $$PLSQL_UNIT, $$PLSQL_LINE, NULL);
+       HAMI.PRC_LOG('LOAN_ACC_TIME', HAMI.FNC_MODAT_EJRA(LOC_S, LOC_F), USER, $$PLSQL_UNIT, $$PLSQL_LINE, NULL);
+
+  EXCEPTION 
+WHEN OTHERS THEN
+RAISE;
+  
+END PRC_TRANSFER_ACCOUNTING;
+--------------------------------------------------------
+--  DDL for Procedure PRC_TRANSFER_DEPOSIT
+--------------------------------------------------------
+
+  CREATE OR REPLACE PROCEDURE "AKIN"."PRC_TRANSFER_DEPOSIT" ( RUN_DATE IN DATE ) AS
+  /*
+  Programmer Name: morteza sahi
+  Release Date/Time:1396/05/12-10:00
+  Version:
+  Category: 
+  Description: enteghal be jadavel DEPOSIT  
+  */
+ V_SEPORDE_TBL_NUMBER   NUMBER; /*KODAM EMRUZ AST?*/
+ LOC_S                  TIMESTAMP;
+ LOC_F                  TIMESTAMP;
+ LOC_MEGHDAR            NUMBER;
+/*  v_trunc(run_date)           DATE ;*/
+BEGIN
+/*  select meghdar into v_trunc(run_date) from PAYESH.tbl_tanzimat_system where nam = 'trunc(run_date)' ;*/
+  /* v_seporde_tbl_number    := PAYESH.FNC_GET_SEPORDE_EMRUZ();*/
+ EXECUTE IMMEDIATE 'truncate table akin.TBL_DEPOSIT';
+ LOC_S   := SYSTIMESTAMP;
+ INSERT
+    /*+   PARALLEL(auto) */ INTO AKIN.TBL_DEPOSIT (
+  DEP_ID
+ ,OPENING_DATE
+ ,BALANCE
+ ,DUE_DATE
+ ,REF_DEPOSIT_TYPE
+ ,RATE
+ ,REF_BRANCH
+ ,REF_CUSTOMER
+ ,REF_DEPOSIT_ACCOUNTING
+ ,MODALITY_TYPE
+ ,REF_CURRENCY
+ ) ( SELECT
+   CASE
+    WHEN T.SHOMARE_SEPORDE IS NOT NULL THEN TO_NUMBER(T.SHOMARE_SEPORDE)
+    ELSE 999999
+   END
+  AS SHOMARE_SEPORDE
+ ,T.TARIKH_EFTETAH
+ ,T.MOJUDI_SEPORDE
+ ,T.TARIKH_SARRESID
+ ,T.NOE_SEPORDE
+ , CASE
+    WHEN ( T.NERKH + NVL(B.RATE,0) ) IS NOT NULL THEN T.NERKH + NVL(B.RATE,0)
+    ELSE 10
+   END
+  AS RATE
+ , CASE
+    WHEN T.BR_CODE IS NOT NULL THEN TO_NUMBER(T.BR_CODE)
+    ELSE 99999
+   END
+  AS BR_CODE
+ , CASE
+    WHEN T.CUST_NO IS NOT NULL THEN TO_NUMBER(T.CUST_NO)
+    ELSE 99999
+   END
+  AS CUST_NO
+ ,T.NOE_SEPORDE
+ ,T.TAFKIK_SEPORDE
+ , CASE
+    WHEN T.ARZ IS NOT NULL THEN T.ARZ
+    ELSE 99999
+   END
+  AS ARZ
+ FROM (
+   SELECT
+          /*+   PARALLEL(auto) */ DISTINCT
+    S.DEPNUM AS SHOMARE_SEPORDE
+   ,S.OPEN_DATE AS TARIKH_EFTETAH
+   ,S.BALANCE_ENDDAY AS MOJUDI_SEPORDE
+   ,S.FRZN_AMNT
+   ,S.STATE_ENDDAY
+   ,ADD_MONTHS(
+     S.RENEW_DATE
+    ,TS.VALIDITY_DURATION
+    ) AS TARIKH_SARRESID
+   ,SUBSTR(
+     S.PRODUCTTYPECOD
+    ,3
+    ,4
+    ) AS NOE_SEPORDE
+   ,A.CUR_ID AS ARZ
+   ,SS.RATE AS NERKH
+   ,SM.CUST_NO + 0 AS CUST_NO
+   ,S.BR_CODE + 10000 AS BR_CODE
+   ,TS.MODALITY_TYPE AS TAFKIK_SEPORDE
+   ,TS.VALIDITY_DURATION AS MODAT
+   FROM DADEKAVAN_DAY.SEPORDE_SOOD SS
+    LEFT OUTER JOIN DADEKAVAN_DAY.DEPOSIT S ON SUBSTR(
+      S.PRODUCTTYPECOD
+     ,3
+     ,4
+     ) = SUBSTR(
+      SS.DEPTYPECODE
+     ,3
+     ,4
+     )
+     /*   AND S.STATE_ENDDAY              =0*/
+    AND
+     S.EFFDATE   = TRUNC(RUN_DATE)
+    LEFT OUTER JOIN PRAGG.TBL_CURRENCY A ON S.CURR_COD   = A.SWIFT_CODE
+    LEFT OUTER JOIN DADEKAVAN_DAY.SEPORDE_MOSHTARI SM ON SM.DP_NO   = S.DEPNUM
+    LEFT OUTER JOIN TBL_MODALITY_TYPE TS ON TS.ID   = SUBSTR(
+     S.PRODUCTTYPECOD
+    ,3
+    ,4
+    )
+          /*  left OUTER join
+          DADEKAVAN_DAY.ETELAATE_MOSHTARI em
+          on
+          EM.C1001CUSTNUM  =SM.CUST_NO*/
+   WHERE S.PRODUCTTYPECOD IS NOT NULL
+    AND
+     S.BALANCE_ENDDAY > 0
+  ) T
+  LEFT OUTER JOIN (
+   SELECT DISTINCT
+    DP_NO
+   ,FIRST_VALUE(
+     RATE
+    ) OVER(PARTITION BY
+     DP_NO
+     ORDER BY
+      BEGIN_DATE
+     DESC
+    ) AS RATE
+   FROM DADEKAVAN_DAY.SEPORDE_SOOD_TAVAFOGHI
+   WHERE BEGIN_DATE < TRUNC(RUN_DATE)
+  ) B ON T.SHOMARE_SEPORDE   = B.DP_NO
+ );
+
+ COMMIT;
+ INSERT
+    /*+   PARALLEL(auto) */ INTO AKIN.TBL_DEPOSIT (
+  DEP_ID
+ ,OPENING_DATE
+ ,BALANCE
+ ,DUE_DATE
+ ,REF_DEPOSIT_TYPE
+ ,REF_CURRENCY
+ ,RATE
+ ,REF_CUSTOMER
+ ,MODALITY_TYPE
+ ,REF_BRANCH
+ ,REF_DEPOSIT_ACCOUNTING
+ ) ( SELECT DISTINCT
+  T.DEPNUM
+ ,MAX(T.OPEN_DATE)
+ ,MAX(T.BALANCE_ENDDAY)
+ ,MAX(ADD_MONTHS(
+   T.RENEW_DATE
+  ,TS.VALIDITY_DURATION
+  ) )
+ ,MAX(SUBSTR(
+   T.PRODUCTTYPECOD
+  ,3
+  ,4
+  ) )
+ ,CASE
+   WHEN MAX(A.CUR_ID) IS NOT NULL THEN MAX(A.CUR_ID)
+   ELSE 99999
+  END
+ ,MAX(
+   CASE
+    WHEN T.BALANCE_ENDDAY >= T.PELE_BASEAMOUNT THEN T.RATE
+    ELSE 0
+   END
+  )
+ ,CASE
+   WHEN MAX(SM.CUST_NO) IS NOT NULL THEN MAX(SM.CUST_NO) + 0
+   ELSE 99999
+  END
+ ,MAX(TS.MODALITY_TYPE)
+ , CASE
+    WHEN MAX(T.BR_CODE) IS NOT NULL THEN TO_NUMBER(MAX(T.BR_CODE) )
+    ELSE 99999
+   END
+  AS BR_CODE
+ ,MAX(SUBSTR(
+   T.PRODUCTTYPECOD
+  ,3
+  ,4
+  ) )
+ FROM (
+   SELECT
+    SP.*
+   ,S.DEPOSITKEY
+   ,S.DEPNUM
+   ,S.BR_CODE + 10000 AS BR_CODE
+   ,S.BR_NAME
+   ,S.PRODUCTTYPECOD
+   ,S.BALANCE_ENDDAY
+   ,S.RENEW_DATE
+   ,S.CURR_COD
+   ,S.CURRENT_STATE
+   ,S.FRZN_AMNT
+   ,S.EFFDATE
+   ,S.STATE_ENDDAY
+   ,S.OPEN_DATE
+   FROM DADEKAVAN_DAY.SEPORDE_SOOD_PELEKANI SP
+    LEFT OUTER JOIN DADEKAVAN_DAY.DEPOSIT S ON SUBSTR(
+     S.PRODUCTTYPECOD
+    ,3
+    ,4
+    ) = SUBSTR(
+     SP.DP_TYPE_CODE
+    ,3
+    ,4
+    )
+   WHERE S.BALANCE_ENDDAY >= SP.PELE_BASEAMOUNT
+    AND
+     S.BALANCE_ENDDAY > 0
+    AND
+     S.EFFDATE   = TRUNC(RUN_DATE)
+  ) T
+  LEFT OUTER JOIN PRAGG.TBL_CURRENCY A ON T.CURR_COD   = A.SWIFT_CODE
+  LEFT OUTER JOIN DADEKAVAN_DAY.SEPORDE_MOSHTARI SM ON SM.DP_NO   = T.DEPNUM
+  LEFT OUTER JOIN
+        /*  DADEKAVAN_DAY.ETELAATE_MOSHTARI em
+        on
+        EM.C1001CUSTNUM  =SM.CUST_NO
+        left outer join */ TBL_MODALITY_TYPE TS ON TS.ID   = SUBSTR(
+   T.PRODUCTTYPECOD
+  ,3
+  ,4
+  )
+ GROUP BY
+  T.DEPNUM
+ );
+
+ COMMIT;
+ INSERT
+    /*+   PARALLEL(auto) */ INTO AKIN.TBL_DEPOSIT (
+  DEP_ID
+ ,OPENING_DATE
+ ,BALANCE
+ ,DUE_DATE
+ ,REF_DEPOSIT_TYPE
+ ,REF_CURRENCY
+ ,RATE
+ ,REF_CUSTOMER
+ ,MODALITY_TYPE
+ ,REF_BRANCH
+ ,REF_DEPOSIT_ACCOUNTING
+ ) ( SELECT DISTINCT
+  T.DEPNUM
+ ,MAX(T.OPEN_DATE)
+ ,ROUND(
+   MAX(T.BALANCE_ENDDAY)
+  ,0
+  )
+ ,MAX(ADD_MONTHS(
+   T.RENEW_DATE
+  ,TS.VALIDITY_DURATION
+  ) )
+ ,MAX(SUBSTR(
+   T.PRODUCTTYPECOD
+  ,3
+  ,4
+  ) )
+ ,CASE
+   WHEN MAX(A.CUR_ID) IS NOT NULL THEN MAX(A.CUR_ID)
+   ELSE 99999
+  END
+ ,MAX(0)
+ ,CASE
+   WHEN MAX(SM.CUST_NO) IS NOT NULL THEN MAX(SM.CUST_NO) + 0
+   ELSE 99999
+  END
+ ,MAX(TS.MODALITY_TYPE)
+ , CASE
+    WHEN MAX(T.BR_CODE) IS NOT NULL THEN MAX(T.BR_CODE) + 10000
+    ELSE 99999
+   END
+  AS BR_CODE
+ ,MAX(SUBSTR(
+   T.PRODUCTTYPECOD
+  ,3
+  ,4
+  ) )
+ FROM DADEKAVAN_DAY.DEPOSIT T
+  LEFT OUTER JOIN PRAGG.TBL_CURRENCY A ON T.CURR_COD   = A.SWIFT_CODE
+  LEFT OUTER JOIN DADEKAVAN_DAY.SEPORDE_MOSHTARI SM ON SM.DP_NO   = T.DEPNUM
+  LEFT OUTER JOIN TBL_MODALITY_TYPE TS ON TS.ID   = SUBSTR(
+   T.PRODUCTTYPECOD
+  ,3
+  ,4
+  )
+ WHERE TS.MODALITY_TYPE   = 2
+     /* AND t.STATE_ENDDAY          =0*/
+  AND
+   T.BALANCE_ENDDAY > 0
+  AND
+   T.EFFDATE          = TRUNC(RUN_DATE)
+ GROUP BY
+  T.DEPNUM
+ );
+
+ COMMIT;
+/*  LOC_F := SYSTIMESTAMP;*/
+/*  SELECT COUNT(*) INTO LOC_MEGHDAR FROM NEGASHT.TBL_SEPORDE_EMRUZ;*/
+/*  HAMI.PRC_LOG('DEP_CNT',LOC_MEGHDAR,USER,$$PLSQL_UNIT,$$PLSQL_LINE,NULL);*/
+/*  HAMI.PRC_LOG('DEP_TIME',HAMI.FNC_MODAT_EJRA(LOC_S,LOC_F),USER,$$PLSQL_UNIT,$$PLSQL_LINE,NULL);*/
+/*  SELECT COUNT(*)-LOC_MEGHDAR INTO LOC_MEGHDAR FROM DADEKAVAN_DAY.DEPOSIT;*/
+/*  HAMI.PRC_LOG('DEP_IGN_CNT',LOC_MEGHDAR,USER,$$PLSQL_UNIT,$$PLSQL_LINE,NULL);*/
+/*  EXCEPTION */
+/*WHEN OTHERS THEN*/
+/*RAISE;*/
+END PRC_TRANSFER_DEPOSIT;
+--------------------------------------------------------
+--  DDL for Procedure PRC_TRANSFER_LOAN
+--------------------------------------------------------
+
+  CREATE OR REPLACE PROCEDURE "AKIN"."PRC_TRANSFER_LOAN" ( RUN_DATE IN DATE ) AS
+  /*
+  Programmer Name: morteza sahi
+  Release Date/Time:1396/05/12-10:00
+  Version:
+  Category: 
+  Description: enteghal be jadavel loan  
+  */
+ LOC_MEGHDAR   NUMBER;
+ LOC_S         TIMESTAMP;
+ LOC_F         TIMESTAMP;
+BEGIN
+ EXECUTE IMMEDIATE 'truncate table tbl_loan';
+ LOC_S   := SYSTIMESTAMP;
+  /*** bar asas sharayeti bayad tashilat dashte bashand ,tashilat morde taeed bank ra montaghel mikonim ***/
+ INSERT
+    /*+   PARALLEL(auto) */ INTO TBL_LOAN (
+  LON_ID
+ ,REF_LOAN_TYPE
+ ,REF_BRANCH
+ ,OPENING_DATE
+ ,APPROVED_AMOUNT
+ ,REF_CUSTOMER
+ ,REF_CURRENCY
+ ,REF_LOAN_ACCOUNTING
+ ,RATE
+ ,CURRENT_AMOUNT
+ ,OVERDUE_AMOUNT
+ ,DEFERRED_AMOUNT
+ ,DOUBTFUL_AMOUNT
+ ) SELECT
+    /*+   PARALLEL(auto) */
+  L.ABRNCHCOD ||
+  L.LNMINORTP ||
+  L.CFCIFNO ||
+  L.CRSERIAL
+ ,L.LNMINORTP
+ ,L.ABRNCHCOD + 10000
+ ,L.CRBGNDT
+ ,L.CRACCLIM
+ ,L.CFCIFNO
+ , CASE
+    WHEN A.CUR_ID IS NOT NULL THEN A.CUR_ID
+    ELSE 99999
+   END
+  AS ID
+ ,SUBSTR(
+   L.PRODUCTTYPECODE
+  ,3
+  ,4
+  )
+ ,L.PRMAINRT
+ ,L.MANDEH_ASL
+ ,L.MANDEH_SARRESIDGOZASHTE
+ ,L.MANDEH_MOAVAGH
+ ,L.MANDEH_MASHKOOK
+ FROM DADEKAVAN_DAY.LOAN L
+  LEFT OUTER JOIN PRAGG.TBL_CURRENCY A ON A.SWIFT_CODE   = L.ACURRCODE
+ WHERE SUBSTR(
+    L.PRODUCTTYPECODE
+   ,0
+   ,3
+   ) <> 'L31'
+  AND
+   L.EFFDATE   = RUN_DATE
+  AND
+   L.STATE_ENDDAY = ANY (
+    '5','4','F','3'
+   );
+
+ COMMIT;
+   /***  baraye tashilati ke dar jadval aghsat ghesti nadarand yek ghest ba meghdar sefr vared mikonim  ***/
+ INSERT INTO TBL_LOAN_PAYMENT (
+  REF_LON_ID
+ ,PAYMENT_NUMBER
+ ,AMOUNT
+ ,PROFIT_AMOUNT
+ ,DUE_DATE
+ ) SELECT
+  L.ABRNCHCOD ||
+  L.LNMINORTP ||
+  L.CFCIFNO ||
+  L.CRSERIAL
+ ,''
+ ,L.MANDEH_ASL
+ ,ROUND(
+   L.MANDEH_ASL * (
+    CASE
+     WHEN PRMAINRT IS NULL THEN NERKH_KARMOZD
+     ELSE PRMAINRT
+    END
+   / 100)
+  ,0
+  )
+ ,CRENDDT
+ FROM DADEKAVAN_DAY.LOAN L
+ WHERE L.ABRNCHCOD || L.LNMINORTP || L.CFCIFNO || L.CRSERIAL NOT IN (
+    SELECT
+     AKIN.TBL_LOAN_PAYMENT.REF_LON_ID
+    FROM AKIN.TBL_LOAN_PAYMENT
+   )
+  AND
+   L.MANDEH_ASL > 0
+  AND
+   L.EFFDATE   = TO_DATE(RUN_DATE);
+
+ COMMIT;
+  /*-------------------------------------*/
+  /*-----------------------------------*/
+  /*    COMMIT;*/
+  /*  LOC_F := SYSTIMESTAMP;*/
+  /*  --SAVING LOGs*/
+  /*  SELECT COUNT(*)*/
+  /*  INTO LOC_MEGHDAR*/
+  /*  FROM NEGASHT.TBL_TASHILAT_EMRUZ;*/
+  /*  HAMI.PRC_LOG('LOAN_CNT',LOC_MEGHDAR,USER,$$PLSQL_UNIT,$$PLSQL_LINE,NULL);*/
+  /*  SELECT COUNT(*)-LOC_MEGHDAR INTO LOC_MEGHDAR FROM DADEKAVAN_DAY.LOAN;*/
+  /*  HAMI.PRC_LOG('LOAN_IGN_CNT',LOC_MEGHDAR,USER,$$PLSQL_UNIT,$$PLSQL_LINE,NULL);*/
+  /*  HAMI.PRC_LOG('LOAN_TIME',HAMI.FNC_MODAT_EJRA(LOC_S,LOC_F),USER,$$PLSQL_UNIT,$$PLSQL_LINE,NULL);*/
+  /*EXCEPTION*/
+  /*WHEN OTHERS THEN*/
+  /*  RAISE;*/
+END PRC_TRANSFER_LOAN;
+--------------------------------------------------------
+--  DDL for Procedure PRC_TRANSFER_DEPOSIT_PROFIT
+--------------------------------------------------------
+
+  CREATE OR REPLACE PROCEDURE "AKIN"."PRC_TRANSFER_DEPOSIT_PROFIT" ( RUN_DATE DATE ) AS
+  /*
+  Programmer Name: morteza sahi
+  Release Date/Time:1396/05/12-10:00
+  Version:
+  Category: 
+  Description: ijad sode sepordeha 
+  */
+ EFF_DATE   DATE;
+ VAR        VARCHAR2(4000);
+BEGIN
+ EXECUTE IMMEDIATE 'ALTER SESSION FORCE PARALLEL DML';
+ EXECUTE IMMEDIATE 'truncate table akin.TBL_DEPOSIT_INTEREST_PAYMENT';
+  /***  bar asas tarikh sarresid sepordeha zaman pardakht sod va mablagh sod pardakhti ra taeen mikonim  ***/
+ INSERT INTO TBL_DEPOSIT_INTEREST_PAYMENT ( REF_DEP_ID,DUE_DATE,PROFIT_AMOUNT ) WITH SEP AS (
+  SELECT
+      /*+  PARALLEL(auto) */
+   ROUND(
+    MONTHS_BETWEEN(
+     E.DUE_DATE
+    ,E.OPENING_DATE
+    )
+   ,0
+   ) FASELE
+  ,ROUND(
+    MONTHS_BETWEEN(SYSDATE,E.OPENING_DATE)
+   ,0
+   ) FASEL
+  ,E.DEP_ID
+  ,E.REF_CURRENCY
+  ,E.REF_CUSTOMER
+  ,E.REF_DEPOSIT_TYPE
+  ,E.REF_BRANCH
+  ,E.DUE_DATE
+  ,E.OPENING_DATE
+  ,ROUND( (E.BALANCE * E.RATE) / 1200) AS BED
+  ,HS.LEDGER_CODE_PROFIT
+  ,E.MODALITY_TYPE
+  FROM TBL_DEPOSIT E
+  ,    TBL_DEPOSIT_ACCOUNTING HS
+  WHERE HS.DEP_ACC_ID     = E.REF_DEPOSIT_ACCOUNTING
+   AND
+    E.DUE_DATE >= RUN_DATE
+   AND
+    E.MODALITY_TYPE   = 1
+   AND
+    E.BALANCE <> 0
+ ),NUM AS (
+  SELECT
+   ROWNUM R
+  FROM DUAL
+  CONNECT BY
+   ROWNUM <= 500
+ )/*max FASELE MAHI EFF V END*/ SELECT
+  SEP.DEP_ID
+ ,ADD_MONTHS(
+   SEP.OPENING_DATE
+  ,NUM.R
+  )
+ ,SEP.BED
+ FROM SEP
+ ,    NUM
+ WHERE NUM.R <= SEP.FASELE
+  AND
+   NUM.R > SEP.FASEL;
+
+ COMMIT;
+    
+/*===========================================================*/
+/*===========================================================*/
+END PRC_TRANSFER_DEPOSIT_PROFIT;
+--------------------------------------------------------
+--  DDL for Procedure PRC_J_TRANSFER_ACCOUNTING
+--------------------------------------------------------
+
+  CREATE OR REPLACE PROCEDURE "AKIN"."PRC_J_TRANSFER_ACCOUNTING" ( RUN_DATE IN DATE ) AS
+  /*
+  Programmer Name: morteza sahi
+  Release Date/Time:1396/05/12-10:00
+  Version:
+  Category: 
+  Description: enteghal be jadavel hesabdari be sorate tarikhi
+  */
+ LOC_S         TIMESTAMP;
+ LOC_F         TIMESTAMP;
+ LOC_MEGHDAR   NUMBER;
+BEGIN
+
+/****  az jadval  SEPORDE_DAFTAR_KOL bar asas nahveie ke bank gofte har noe seporde be yek code sarfasl sod va yek code sarfasl asl negasht mishavad ****/
+ EXECUTE IMMEDIATE 'truncate table  akin.TBL_DEPOSIT_ACCOUNTING';
+ LOC_S         := SYSTIMESTAMP;
+ INSERT INTO AKIN.TBL_DEPOSIT_ACCOUNTING/*- hesabdari SEPORDE*/
+  ( SELECT
+  *
+ FROM (
+   SELECT
+    SUBSTR(DP_TYPE_CODE,3,4) AS REF_SEPORDE
+   ,TO_CHAR(REL_TYPE) AS S
+   ,GLCODE
+   FROM ARCHIVE_RAW_BANK_DATA.SEPORDE_DAFTAR_KOL@AKIN_TO_ARCHIVE
+   WHERE EFFDATE   = TRUNC(RUN_DATE)
+  )
+   PIVOT ( SUM ( GLCODE )
+    FOR S
+    IN ( 'حساب اصلي' AS ASL,'حساب سود علي الحساب' AS SUD )
+   )
+ WHERE ASL IS NOT NULL
+ );
+
+  /*----------------------------------------------------------------*/
+/****  az jadval  TASHILAT_DAFTAR_KOL bar asas nahveie ke bank gofte har noe TASHILAT be yek code sarfasl sod va yek code sarfasl asl negasht mishavad ****/
+
+ EXECUTE IMMEDIATE 'truncate table  akin.TBL_LOAN_ACCOUNTING';
+ LOC_S         := SYSTIMESTAMP;
+ INSERT INTO AKIN.TBL_LOAN_ACCOUNTING /*-HESABDARI_TASHILAT*/
+  ( SELECT
+  *
+ FROM (
+   SELECT
+    SUBSTR(DP_TYPE_CODE,3,4) AS REF_TASHILAT
+   ,TO_CHAR(REL_TYPE) AS S
+   ,GLCODE
+   FROM ARCHIVE_RAW_BANK_DATA.TASHILAT_DAFTAR_KOL@AKIN_TO_ARCHIVE
+   WHERE SUBSTR(DP_TYPE_CODE,0,3) = 'L33'
+    AND
+     EFFDATE   = TRUNC(RUN_DATE)
+  )
+   PIVOT ( MAX ( GLCODE )
+    FOR S
+    IN ( 'اصلي' AS ASL,'سود قطعي' AS SUD )
+   )
+ WHERE ASL IS NOT NULL
+ ) UNION ( SELECT
+  *
+ FROM (
+   SELECT
+    SUBSTR(DP_TYPE_CODE,3,4) AS REF_TASHILAT
+   ,TO_CHAR(REL_TYPE) AS S
+   ,GLCODE
+   FROM ARCHIVE_RAW_BANK_DATA.TASHILAT_DAFTAR_KOL@AKIN_TO_ARCHIVE
+   WHERE SUBSTR(DP_TYPE_CODE,0,3) = 'L34'
+    AND
+     EFFDATE   = TRUNC(RUN_DATE)
+  )
+   PIVOT ( MAX ( GLCODE )
+    FOR S
+    IN ( 'اصلي' AS ASL,'سود قطعي' AS SUD )
+   )
+ WHERE ASL IS NOT NULL
+ ) UNION ( SELECT
+  *
+ FROM (
+   SELECT
+    SUBSTR(DP_TYPE_CODE,3,4) AS REF_TASHILAT
+   ,TO_CHAR(REL_TYPE) AS S
+   ,GLCODE
+   FROM ARCHIVE_RAW_BANK_DATA.TASHILAT_DAFTAR_KOL@AKIN_TO_ARCHIVE
+   WHERE SUBSTR(DP_TYPE_CODE,0,3) = 'L36'
+  )
+   PIVOT ( MAX ( GLCODE )
+    FOR S
+    IN ( 'اصلي' AS ASL,'سود قطعي' AS SUD )
+   )
+ WHERE ASL IS NOT NULL
+ );
+
+ COMMIT;
+ INSERT INTO AKIN.TBL_LOAN_ACCOUNTING ( SELECT
+  REF_TASHILAT
+ ,ASL
+ , CASE
+    WHEN SUD IS NULL THEN SUD1
+    ELSE SUD
+   END
+  AS SUD
+ FROM (
+   SELECT
+    SUBSTR(DP_TYPE_CODE,3,4) AS REF_TASHILAT
+   ,TO_CHAR(REL_TYPE) AS S
+   ,GLCODE
+   FROM ARCHIVE_RAW_BANK_DATA.TASHILAT_DAFTAR_KOL@AKIN_TO_ARCHIVE
+   WHERE SUBSTR(DP_TYPE_CODE,0,3) = 'L32' /* or substr(DP_TYPE_CODE,0,3) ='L33' */
+  )
+   PIVOT ( MAX ( GLCODE )
+    FOR S
+    IN ( 'اصلي' AS ASL,'کارمزد' AS SUD,'کارمزد دريافتي' AS SUD1 )
+   )
+ WHERE ASL IS NOT NULL
+ );
+
+-- LOC_F         := SYSTIMESTAMP;
+-- LOC_MEGHDAR   := SQL%ROWCOUNT;
+-- HAMI.PRC_LOG(
+--  'LOAN_ACC_CNT'
+-- ,LOC_MEGHDAR
+-- ,USER
+-- ,$$PLSQL_UNIT
+-- ,$$PLSQL_LINE
+-- ,NULL
+-- );
+-- HAMI.PRC_LOG(
+--  'LOAN_ACC_TIME'
+-- ,HAMI.FNC_MODAT_EJRA(LOC_S,LOC_F)
+-- ,USER
+-- ,$$PLSQL_UNIT
+-- ,$$PLSQL_LINE
+-- ,NULL
+-- );
+
+EXCEPTION
+ WHEN OTHERS THEN
+  RAISE;
+END PRC_J_TRANSFER_ACCOUNTING;
+--------------------------------------------------------
+--  DDL for Procedure PRC_J_TRANSFER_DEPOSIT
+--------------------------------------------------------
+
+  CREATE OR REPLACE PROCEDURE "AKIN"."PRC_J_TRANSFER_DEPOSIT" ( RUN_DATE IN DATE ) AS
+  /*
+  Programmer Name: morteza sahi
+  Release Date/Time:1396/05/12-10:00
+  Version:
+  Category: 
+  Description: enteghal be jadavel DEPOSIT be sorate tarikhi
+  */
+ LOC_S         TIMESTAMP;
+ LOC_F         TIMESTAMP;
+ LOC_MEGHDAR   NUMBER;
+BEGIN
+ EXECUTE IMMEDIATE 'truncate table akin.TBL_DEPOSIT';
+ LOC_S   := SYSTIMESTAMP;
+ INSERT
+    /*+   PARALLEL(auto) */ INTO AKIN.TBL_DEPOSIT (
+  DEP_ID
+ ,OPENING_DATE
+ ,BALANCE
+ ,DUE_DATE
+ ,REF_DEPOSIT_TYPE
+ ,RATE
+ ,REF_BRANCH
+ ,REF_CUSTOMER
+ ,REF_DEPOSIT_ACCOUNTING
+ ,MODALITY_TYPE
+ ,REF_CURRENCY
+ ) ( SELECT
+   CASE
+    WHEN T.SHOMARE_SEPORDE IS NOT NULL THEN TO_NUMBER(T.SHOMARE_SEPORDE)
+    ELSE 999999
+   END
+  AS SHOMARE_SEPORDE
+ ,T.TARIKH_EFTETAH
+ ,T.MOJUDI_SEPORDE
+ ,T.TARIKH_SARRESID
+ ,T.NOE_SEPORDE
+ , CASE
+    WHEN ( T.NERKH + NVL(B.RATE,0) ) IS NOT NULL THEN T.NERKH + NVL(B.RATE,0)
+    ELSE 10
+   END
+  AS RATE
+ , CASE
+    WHEN T.BR_CODE IS NOT NULL THEN TO_NUMBER(T.BR_CODE)
+    ELSE 99999
+   END
+  AS BR_CODE
+ , CASE
+    WHEN T.CUST_NO IS NOT NULL THEN TO_NUMBER(T.CUST_NO)
+    ELSE 99999
+   END
+  AS CUST_NO
+ ,T.NOE_SEPORDE
+ ,T.TAFKIK_SEPORDE
+ , CASE
+    WHEN T.ARZ IS NOT NULL THEN T.ARZ
+    ELSE 99999
+   END
+  AS ARZ
+ FROM (
+   SELECT
+          /*+   PARALLEL(auto) */ DISTINCT
+    S.DEPNUM AS SHOMARE_SEPORDE
+   ,S.OPEN_DATE AS TARIKH_EFTETAH
+   ,S.BALANCE_ENDDAY AS MOJUDI_SEPORDE
+   ,S.FRZN_AMNT
+   ,S.STATE_ENDDAY
+   ,ADD_MONTHS(
+     S.RENEW_DATE
+    ,TS.VALIDITY_DURATION
+    ) AS TARIKH_SARRESID
+   ,SUBSTR(
+     S.PRODUCTTYPECOD
+    ,3
+    ,4
+    ) AS NOE_SEPORDE
+   ,A.CUR_ID AS ARZ
+   ,SS.RATE AS NERKH
+   ,SM.CUST_NO + 0 AS CUST_NO
+   ,S.BR_CODE + 10000 AS BR_CODE
+   ,TS.MODALITY_TYPE AS TAFKIK_SEPORDE
+   ,TS.VALIDITY_DURATION AS MODAT
+   FROM ARCHIVE_RAW_BANK_DATA.SEPORDE_SOOD@AKIN_TO_ARCHIVE SS
+    LEFT OUTER JOIN ARCHIVE_RAW_BANK_DATA.DEPOSIT@AKIN_TO_ARCHIVE S ON SUBSTR(
+      S.PRODUCTTYPECOD
+     ,3
+     ,4
+     ) = SUBSTR(
+      SS.DEPTYPECODE
+     ,3
+     ,4
+     )
+    AND
+     S.EFFDATE    = TRUNC(RUN_DATE)
+    AND
+     SS.EFFDATE   = TRUNC(RUN_DATE)
+    LEFT OUTER JOIN PRAGG.TBL_CURRENCY A ON S.CURR_COD   = A.SWIFT_CODE
+    LEFT OUTER JOIN ARCHIVE_RAW_BANK_DATA.SEPORDE_MOSHTARI@AKIN_TO_ARCHIVE SM ON SM.DP_NO   = S.DEPNUM
+    LEFT OUTER JOIN TBL_MODALITY_TYPE TS ON TS.ID   = SUBSTR(
+     S.PRODUCTTYPECOD
+    ,3
+    ,4
+    )
+   WHERE S.PRODUCTTYPECOD IS NOT NULL
+    AND
+     S.BALANCE_ENDDAY > 0
+    AND
+     SM.EFFDATE   = TRUNC(RUN_DATE)
+  ) T
+  LEFT OUTER JOIN (
+   SELECT DISTINCT
+    DP_NO
+   ,FIRST_VALUE(
+     RATE
+    ) OVER(PARTITION BY
+     DP_NO
+     ORDER BY
+      BEGIN_DATE
+     DESC
+    ) AS RATE
+   FROM ARCHIVE_RAW_BANK_DATA.SEPORDE_SOOD_TAVAFOGHI@AKIN_TO_ARCHIVE
+   WHERE BEGIN_DATE < TRUNC(RUN_DATE)
+    AND
+     EFFDATE   = TRUNC(RUN_DATE)
+  ) B ON T.SHOMARE_SEPORDE   = B.DP_NO
+ );
+
+ COMMIT;
+ INSERT
+    /*+   PARALLEL(auto) */ INTO AKIN.TBL_DEPOSIT (
+  DEP_ID
+ ,OPENING_DATE
+ ,BALANCE
+ ,DUE_DATE
+ ,REF_DEPOSIT_TYPE
+ ,REF_CURRENCY
+ ,RATE
+ ,REF_CUSTOMER
+ ,MODALITY_TYPE
+ ,REF_BRANCH
+ ,REF_DEPOSIT_ACCOUNTING
+ ) ( SELECT DISTINCT
+  T.DEPNUM
+ ,MAX(T.OPEN_DATE)
+ ,MAX(T.BALANCE_ENDDAY)
+ ,MAX(ADD_MONTHS(
+   T.RENEW_DATE
+  ,TS.VALIDITY_DURATION
+  ) )
+ ,MAX(SUBSTR(
+   T.PRODUCTTYPECOD
+  ,3
+  ,4
+  ) )
+ ,CASE
+   WHEN MAX(A.CUR_ID) IS NOT NULL THEN MAX(A.CUR_ID)
+   ELSE 99999
+  END
+ ,MAX(
+   CASE
+    WHEN T.BALANCE_ENDDAY >= T.PELE_BASEAMOUNT THEN T.RATE
+    ELSE 0
+   END
+  )
+ ,CASE
+   WHEN MAX(SM.CUST_NO) IS NOT NULL THEN MAX(SM.CUST_NO) + 0
+   ELSE 99999
+  END
+ ,MAX(TS.MODALITY_TYPE)
+ , CASE
+    WHEN MAX(T.BR_CODE) IS NOT NULL THEN TO_NUMBER(MAX(T.BR_CODE) )
+    ELSE 99999
+   END
+  AS BR_CODE
+ ,MAX(SUBSTR(
+   T.PRODUCTTYPECOD
+  ,3
+  ,4
+  ) )
+ FROM (
+   SELECT
+    SP.*
+   ,S.DEPOSITKEY
+   ,S.DEPNUM
+   ,S.BR_CODE + 10000 AS BR_CODE
+   ,S.BR_NAME
+   ,S.PRODUCTTYPECOD
+   ,S.BALANCE_ENDDAY
+   ,S.RENEW_DATE
+   ,S.CURR_COD
+   ,S.CURRENT_STATE
+   ,S.FRZN_AMNT
+   ,S.EFFDATE AS EFFFDATE
+   ,S.STATE_ENDDAY
+   ,S.OPEN_DATE
+   FROM ARCHIVE_RAW_BANK_DATA.SEPORDE_SOOD_PELEKANI@AKIN_TO_ARCHIVE SP
+    LEFT OUTER JOIN ARCHIVE_RAW_BANK_DATA.DEPOSIT@AKIN_TO_ARCHIVE S ON SUBSTR(
+     S.PRODUCTTYPECOD
+    ,3
+    ,4
+    ) = SUBSTR(
+     SP.DP_TYPE_CODE
+    ,3
+    ,4
+    )
+   WHERE S.BALANCE_ENDDAY >= SP.PELE_BASEAMOUNT
+    AND
+     S.BALANCE_ENDDAY > 0
+    AND
+     S.EFFDATE    = TRUNC(RUN_DATE)
+    AND
+     SP.EFFDATE   = TRUNC(RUN_DATE)
+  ) T
+  LEFT OUTER JOIN PRAGG.TBL_CURRENCY A ON T.CURR_COD   = A.SWIFT_CODE
+  LEFT OUTER JOIN ARCHIVE_RAW_BANK_DATA.SEPORDE_MOSHTARI@AKIN_TO_ARCHIVE SM ON SM.DP_NO   = T.DEPNUM
+  LEFT OUTER JOIN TBL_MODALITY_TYPE TS ON TS.ID        = SUBSTR(
+    T.PRODUCTTYPECOD
+   ,3
+   ,4
+   )
+  AND
+   SM.EFFDATE   = TRUNC(RUN_DATE)
+ GROUP BY
+  T.DEPNUM
+ );
+
+ COMMIT;
+ INSERT
+    /*+   PARALLEL(auto) */ INTO AKIN.TBL_DEPOSIT (
+  DEP_ID
+ ,OPENING_DATE
+ ,BALANCE
+ ,DUE_DATE
+ ,REF_DEPOSIT_TYPE
+ ,REF_CURRENCY
+ ,RATE
+ ,REF_CUSTOMER
+ ,MODALITY_TYPE
+ ,REF_BRANCH
+ ,REF_DEPOSIT_ACCOUNTING
+ ) ( SELECT DISTINCT
+  T.DEPNUM
+ ,MAX(T.OPEN_DATE)
+ ,ROUND(
+   MAX(T.BALANCE_ENDDAY)
+  ,0
+  )
+ ,MAX(ADD_MONTHS(
+   T.RENEW_DATE
+  ,TS.VALIDITY_DURATION
+  ) )
+ ,MAX(SUBSTR(
+   T.PRODUCTTYPECOD
+  ,3
+  ,4
+  ) )
+ ,CASE
+   WHEN MAX(A.CUR_ID) IS NOT NULL THEN MAX(A.CUR_ID)
+   ELSE 99999
+  END
+ ,MAX(0)
+ ,CASE
+   WHEN MAX(SM.CUST_NO) IS NOT NULL THEN MAX(SM.CUST_NO) + 0
+   ELSE 99999
+  END
+ ,MAX(TS.MODALITY_TYPE)
+ , CASE
+    WHEN MAX(T.BR_CODE) IS NOT NULL THEN MAX(T.BR_CODE) + 10000
+    ELSE 99999
+   END
+  AS BR_CODE
+ ,MAX(SUBSTR(
+   T.PRODUCTTYPECOD
+  ,3
+  ,4
+  ) )
+ FROM ARCHIVE_RAW_BANK_DATA.DEPOSIT@AKIN_TO_ARCHIVE T
+  LEFT OUTER JOIN PRAGG.TBL_CURRENCY A ON T.CURR_COD   = A.SWIFT_CODE
+  LEFT OUTER JOIN ARCHIVE_RAW_BANK_DATA.SEPORDE_MOSHTARI@AKIN_TO_ARCHIVE SM ON SM.DP_NO   = T.DEPNUM
+  LEFT OUTER JOIN TBL_MODALITY_TYPE TS ON TS.ID   = SUBSTR(
+   T.PRODUCTTYPECOD
+  ,3
+  ,4
+  )
+ WHERE TS.MODALITY_TYPE   = 2
+  AND
+   T.BALANCE_ENDDAY > 0
+  AND
+   T.EFFDATE          = TRUNC(RUN_DATE)
+  AND
+   SM.EFFDATE         = TRUNC(RUN_DATE)
+ GROUP BY
+  T.DEPNUM
+ );
+
+ COMMIT;
+/*  LOC_F := SYSTIMESTAMP;*/
+/*  SELECT COUNT(*) INTO LOC_MEGHDAR FROM NEGASHT.TBL_SEPORDE_EMRUZ;*/
+/*  HAMI.PRC_LOG('DEP_CNT',LOC_MEGHDAR,USER,$$PLSQL_UNIT,$$PLSQL_LINE,NULL);*/
+/*  HAMI.PRC_LOG('DEP_TIME',HAMI.FNC_MODAT_EJRA(LOC_S,LOC_F),USER,$$PLSQL_UNIT,$$PLSQL_LINE,NULL);*/
+/*  SELECT COUNT(*)-LOC_MEGHDAR INTO LOC_MEGHDAR FROM archive_raw_bank_data.DEPOSIT;*/
+/*  HAMI.PRC_LOG('DEP_IGN_CNT',LOC_MEGHDAR,USER,$$PLSQL_UNIT,$$PLSQL_LINE,NULL);*/
+/*  EXCEPTION */
+/*WHEN OTHERS THEN*/
+/*RAISE;*/
+END PRC_J_TRANSFER_DEPOSIT;
+--------------------------------------------------------
+--  DDL for Procedure PRC_J_TRANSFER_DEPOSIT_PROFIT
+--------------------------------------------------------
+
+  CREATE OR REPLACE PROCEDURE "AKIN"."PRC_J_TRANSFER_DEPOSIT_PROFIT" ( RUN_DATE DATE ) AS
+  /*
+  Programmer Name: morteza sahi
+  Release Date/Time:1396/05/12-10:00
+  Version:
+  Category: 
+  Description: ijad sode sepordeha be sorat tarikhi
+  */
+ EFF_DATE   DATE;
+ VAR        VARCHAR2(4000);
+BEGIN
+ EXECUTE IMMEDIATE 'ALTER SESSION FORCE PARALLEL DML';
+ EXECUTE IMMEDIATE 'truncate table akin.TBL_DEPOSIT_INTEREST_PAYMENT';
+ /***  bar asas tarikh sarresid sepordeha zaman pardakht sod va mablagh sod pardakhti ra taeen mikonim  ***/
+ INSERT INTO TBL_DEPOSIT_INTEREST_PAYMENT ( REF_DEP_ID,DUE_DATE,PROFIT_AMOUNT ) WITH SEP AS (
+  SELECT
+      /*+  PARALLEL(auto) */
+   ROUND(
+    MONTHS_BETWEEN(
+     E.DUE_DATE
+    ,E.OPENING_DATE
+    )
+   ,0
+   ) FASELE
+  ,ROUND(
+    MONTHS_BETWEEN(SYSDATE,E.OPENING_DATE)
+   ,0
+   ) FASEL
+  ,E.DEP_ID
+  ,E.REF_CURRENCY
+  ,E.REF_CUSTOMER
+  ,E.REF_DEPOSIT_TYPE
+  ,E.REF_BRANCH
+  ,E.DUE_DATE
+  ,E.OPENING_DATE
+  ,ROUND( (E.BALANCE * E.RATE) / 1200) AS BED
+  ,HS.LEDGER_CODE_PROFIT
+  ,E.MODALITY_TYPE
+  FROM TBL_DEPOSIT E
+  ,    TBL_DEPOSIT_ACCOUNTING HS
+  WHERE HS.DEP_ACC_ID     = E.REF_DEPOSIT_ACCOUNTING
+   AND
+    E.DUE_DATE >= RUN_DATE
+   AND
+    E.MODALITY_TYPE   = 1
+   AND
+    E.BALANCE <> 0
+ ),NUM AS (
+  SELECT
+   ROWNUM R
+  FROM DUAL
+  CONNECT BY
+   ROWNUM <= 500
+ )/*max FASELE MAHI EFF V END*/ SELECT
+  SEP.DEP_ID
+ ,ADD_MONTHS(
+   SEP.OPENING_DATE
+  ,NUM.R
+  )
+ ,SEP.BED
+ FROM SEP
+ ,    NUM
+ WHERE NUM.R <= SEP.FASELE
+  AND
+   NUM.R > SEP.FASEL;
+
+ COMMIT;
+    
+/*===========================================================*/
+/*===========================================================*/
+END PRC_J_TRANSFER_DEPOSIT_PROFIT;
+--------------------------------------------------------
+--  DDL for Procedure PRC_J_TRANSFER_LOAN
+--------------------------------------------------------
+
+  CREATE OR REPLACE PROCEDURE "AKIN"."PRC_J_TRANSFER_LOAN" ( RUN_DATE IN DATE ) AS
+  /*
+  Programmer Name: morteza sahi
+  Release Date/Time:1396/05/12-10:00
+  Version:
+  Category: 
+  Description: enteghal be jadavel loan be sorate tarikhi
+  */
+ LOC_MEGHDAR   NUMBER;
+ LOC_S         TIMESTAMP;
+ LOC_F         TIMESTAMP;
+BEGIN
+ EXECUTE IMMEDIATE 'truncate table tbl_loan';
+ LOC_S   := SYSTIMESTAMP;
+ 
+ /*** bar asas sharayeti bayad tashilat dashte bashand , tashilat morde taeed bank ra montaghel mikonim ***/
+ INSERT
+    /*+   PARALLEL(auto) */ INTO TBL_LOAN (
+  LON_ID
+ ,REF_LOAN_TYPE
+ ,REF_BRANCH
+ ,OPENING_DATE
+ ,APPROVED_AMOUNT
+ ,REF_CUSTOMER
+ ,REF_CURRENCY
+ ,REF_LOAN_ACCOUNTING
+ ,RATE
+ ,CURRENT_AMOUNT
+ ,OVERDUE_AMOUNT
+ ,DEFERRED_AMOUNT
+ ,DOUBTFUL_AMOUNT
+ ) SELECT
+    /*+   PARALLEL(auto) */
+  L.ABRNCHCOD ||
+  L.LNMINORTP ||
+  L.CFCIFNO ||
+  L.CRSERIAL
+ ,L.LNMINORTP
+ ,L.ABRNCHCOD + 10000
+ ,L.CRBGNDT
+ ,L.CRACCLIM
+ ,L.CFCIFNO
+ , CASE
+    WHEN A.CUR_ID IS NOT NULL THEN A.CUR_ID
+    ELSE 99999
+   END
+  AS ID
+ ,SUBSTR(
+   L.PRODUCTTYPECODE
+  ,3
+  ,4
+  )
+ ,L.PRMAINRT
+ ,L.MANDEH_ASL
+ ,L.MANDEH_SARRESIDGOZASHTE
+ ,L.MANDEH_MOAVAGH
+ ,L.MANDEH_MASHKOOK
+ FROM ARCHIVE_RAW_BANK_DATA.LOAN@AKIN_TO_ARCHIVE L
+  LEFT OUTER JOIN PRAGG.TBL_CURRENCY A ON A.SWIFT_CODE   = L.ACURRCODE
+ WHERE SUBSTR(
+    L.PRODUCTTYPECODE
+   ,0
+   ,3
+   ) <> 'L31'
+  AND
+   L.EFFDATE   = RUN_DATE
+  AND
+   L.STATE_ENDDAY = ANY (
+    '5','4','F','3'
+   );
+
+ COMMIT;
+  /***  baraye tashilati ke dar jadval aghsat ghesti nadarand yek ghest ba meghdar sefr vared mikonim  ***/
+
+ INSERT INTO TBL_LOAN_PAYMENT (
+  REF_LON_ID
+ ,PAYMENT_NUMBER
+ ,AMOUNT
+ ,PROFIT_AMOUNT
+ ,DUE_DATE
+ ) SELECT
+  L.ABRNCHCOD ||
+  L.LNMINORTP ||
+  L.CFCIFNO ||
+  L.CRSERIAL
+ ,''
+ ,L.MANDEH_ASL
+ ,ROUND(
+   L.MANDEH_ASL * (
+    CASE
+     WHEN PRMAINRT IS NULL THEN NERKH_KARMOZD
+     ELSE PRMAINRT
+    END
+   / 100)
+  ,0
+  )
+ ,CRENDDT
+ FROM ARCHIVE_RAW_BANK_DATA.LOAN@AKIN_TO_ARCHIVE L
+ WHERE L.ABRNCHCOD || L.LNMINORTP || L.CFCIFNO || L.CRSERIAL NOT IN (
+    SELECT
+     AKIN.TBL_LOAN_PAYMENT.REF_LON_ID
+    FROM AKIN.TBL_LOAN_PAYMENT
+   )
+  AND
+   L.MANDEH_ASL > 0
+  AND
+   L.EFFDATE   = TO_DATE(RUN_DATE);
+
+ COMMIT;
+  /*-------------------------------------*/
+  /*-----------------------------------*/
+  /*    COMMIT;*/
+  /*  LOC_F := SYSTIMESTAMP;*/
+  /*  --SAVING LOGs*/
+  /*  SELECT COUNT(*)*/
+  /*  INTO LOC_MEGHDAR*/
+  /*  FROM NEGASHT.TBL_TASHILAT_EMRUZ;*/
+  /*  HAMI.PRC_LOG('LOAN_CNT',LOC_MEGHDAR,USER,$$PLSQL_UNIT,$$PLSQL_LINE,NULL);*/
+  /*  SELECT COUNT(*)-LOC_MEGHDAR INTO LOC_MEGHDAR FROM archive_raw_bank_data.LOAN;*/
+  /*  HAMI.PRC_LOG('LOAN_IGN_CNT',LOC_MEGHDAR,USER,$$PLSQL_UNIT,$$PLSQL_LINE,NULL);*/
+  /*  HAMI.PRC_LOG('LOAN_TIME',HAMI.FNC_MODAT_EJRA(LOC_S,LOC_F),USER,$$PLSQL_UNIT,$$PLSQL_LINE,NULL);*/
+  /*EXCEPTION*/
+  /*WHEN OTHERS THEN*/
+  /*  RAISE;*/
+END PRC_J_TRANSFER_LOAN;
+--------------------------------------------------------
+--  DDL for Procedure PRC_J_TRANSFER_PAYMENT
+--------------------------------------------------------
+
+  CREATE OR REPLACE PROCEDURE "AKIN"."PRC_J_TRANSFER_PAYMENT" ( RUNDATE IN DATE )
+  /*
+  Programmer Name: morteza sahi
+  Release Date/Time:1396/05/12-10:00
+  Version:
+  Category: 
+  Description: enteghal be jadavel aghsat be sorate tarikhi
+  */ AS
+ LOC_S         TIMESTAMP;
+ LOC_F         TIMESTAMP;
+ LOC_MEGHDAR   NUMBER;
+BEGIN
+ EXECUTE IMMEDIATE 'truncate table akin.TBL_LOAN_PAYMENT';
+ LOC_S   := SYSTIMESTAMP;
+     /*** asl ghest va sude ghest ra az jadavele archive khonde va be akin miriza***/
+
+ INSERT
+    /*+ PARALLEL(AUTO) */ INTO AKIN.TBL_LOAN_PAYMENT (
+  REF_LON_ID
+ ,DUE_DATE
+ ,PROFIT_AMOUNT
+ ,AMOUNT
+ ) SELECT
+  P.ABRNCHCOD ||
+  P.LNMINORTP ||
+  P.CFCIFNO ||
+  P.CRSERIAL AS TASHILAT
+ ,P.PAY_DATE PAY_DATE
+ ,P.PAY_PROFIT PAY_PROFIT
+ ,P.PAY_AMOUNT - P.PAY_PROFIT PAY_AMOUNT
+ FROM ARCHIVE_RAW_BANK_DATA.PAYMENT@AKIN_TO_ARCHIVE P
+ WHERE P.PAY_AMOUNT - P.PAY_PROFIT > 0
+  AND
+   EFFDATE   = TRUNC(RUNDATE);
+/**/
+/*       LOC_F := SYSTIMESTAMP;*/
+/*       LOC_MEGHDAR := SQL%ROWCOUNT;*/
+/*       HAMI.PRC_LOG('PAY_CNT',LOC_MEGHDAR,USER,$$PLSQL_UNIT,$$PLSQL_LINE,NULL);*/
+/*       HAMI.PRC_LOG('PAY_TIME',HAMI.FNC_MODAT_EJRA(LOC_S,LOC_F),USER,$$PLSQL_UNIT,$$PLSQL_LINE,NULL);*/
+/*       SELECT COUNT(*)-LOC_MEGHDAR INTO LOC_MEGHDAR FROM archive_raw_bank_data.PAYMENT;*/
+/*       HAMI.PRC_LOG('PAY_IGN_CNT',LOC_MEGHDAR,USER,$$PLSQL_UNIT,$$PLSQL_LINE,NULL);*/
+/*       */
+/*EXCEPTION */
+/*WHEN OTHERS THEN*/
+/*RAISE;*/
+
+END PRC_J_TRANSFER_PAYMENT;
+--------------------------------------------------------
+--  DDL for Procedure PRC_TRANSFER_MODALITY_TYPE
+--------------------------------------------------------
+
+  CREATE OR REPLACE PROCEDURE "AKIN"."PRC_TRANSFER_MODALITY_TYPE" 
+as
+begin
+EXECUTE IMMEDIATE 'truncate table TBL_MODALITY_TYPE';
+INSERT
+INTO TBL_MODALITY_TYPE
+  (
+    id,
+    name,
+    validity_duration,
+    modality_type
+  )
+SELECT id,
+  onvan,
+  modat,
+  CASE
+    WHEN tafkik=2
+    AND onvan LIKE '%قرض%'
+    THEN 2
+    WHEN tafkik=2
+    AND onvan NOT LIKE '%قرض%'
+    THEN 3
+    ELSE 1
+  END AS tafkik
+FROM
+  (SELECT id,
+    onvan,
+    modat,
+    CASE
+      WHEN modat =0
+      THEN 2
+      ELSE 1
+    END AS tafkik
+  FROM
+    (SELECT DISTINCT SUBSTR( DP_TYPE_CODE,3,4) AS id,
+      TITLE                                    AS onvan,
+      CASE
+        WHEN (
+          CASE
+            WHEN DEPTMTYP =2
+            THEN DEPTM*12
+            ELSE DEPTM
+          END) >100
+        THEN 0
+        ELSE (
+          CASE
+            WHEN DEPTMTYP =2
+            THEN DEPTM*12
+            ELSE DEPTM
+          END)
+      END AS modat
+    FROM DADEKAVAN_DAY.NOE_SEPORDE
+    )
+  ) ;
+  COMMIT;
+  UPDATE TBL_MODALITY_TYPE
+SET modality_type                        =2
+WHERE id in (1003,
+1004,
+1005,
+1006,
+1007);
+
+  end;
+--------------------------------------------------------
+--  DDL for Procedure PRC_SHIVE_NEGASHT
+--------------------------------------------------------
+
+  CREATE OR REPLACE PROCEDURE "AKIN"."PRC_SHIVE_NEGASHT" (
+    INPAR_COD_SARFASL     IN NUMBER ,
+    INPAR_YEK_MAH         IN NUMBER ,
+    INPAR_YEK_TA_SEMAH    IN NUMBER ,
+    INPAR_SEMAH_TA_YEKSAL IN NUMBER ,
+    INPAR_YEK_TA_5SAL     IN NUMBER ,
+    INPAR_BISHTAR_AZ_5SAL IN NUMBER ,
+    INPAR_BEDONE_JARIAN   IN NUMBER,
+    outpar out number)
+AS
+BEGIN
+  UPDATE TBL_SHIVE_NEGASHT_IFRS
+  SET YEK_MAH       = nvl(INPAR_YEK_MAH,0) ,
+    YEK_TA_SEMAH    = nvl(INPAR_YEK_TA_SEMAH ,0),
+    SEMAH_TA_YEKSAL = nvl(INPAR_SEMAH_TA_YEKSAL,0) ,
+    YEK_TA_5SAL     = nvl(INPAR_YEK_TA_5SAL,0) ,
+    BISHTAR_AZ_5SAL = nvl(INPAR_BISHTAR_AZ_5SAL,0) ,
+    BEDONE_JARIAN   = nvl(INPAR_BEDONE_JARIAN,0)
+  WHERE REF_SARFASL =  INPAR_COD_SARFASL ;
+ 
+  COMMIT;
+  
+  outpar:=1;
+END PRC_SHIVE_NEGASHT;
+--------------------------------------------------------
+--  DDL for Procedure PRC_SYSTEM_DATA_TEST
+--------------------------------------------------------
+
+  CREATE OR REPLACE PROCEDURE "AKIN"."PRC_SYSTEM_DATA_TEST" AS 
+var_count number;
+BEGIN
+
+
+select count(*) into var_count from TBL_DEPOSIT;
+DBMS_OUTPUT.PUT_LINE(' tedade seporde ha : '||var_count);
+select count(*) into var_count from TBL_LOAN;
+DBMS_OUTPUT.PUT_LINE(' tedade tashilat : '||var_count);
+select count(*) into var_count from TBL_LOAN_ACCOUNTING;
+DBMS_OUTPUT.PUT_LINE(' tedade hesabdari tashilat : '||var_count);
+select count(*) into var_count from TBL_DEPOSIT_ACCOUNTING;
+DBMS_OUTPUT.PUT_LINE(' tedade hesabdari seporde : '||var_count);
+select count(*) into var_count from TBL_DEPOSIT where REF_DEPOSIT_ACCOUNTING not in (select TBL_DEPOSIT_ACCOUNTING.DEP_ACC_ID from TBL_DEPOSIT_ACCOUNTING);
+DBMS_OUTPUT.PUT_LINE(' tedade seporde ha ke dar hesabdari nistand : '||var_count );
+select count(*) into var_count from TBL_loan where REF_loan_ACCOUNTING not in (select  TBL_LOAN_ACCOUNTING.LON_ACC_ID from TBL_loan_ACCOUNTING);
+DBMS_OUTPUT.PUT_LINE(' tedade tashilat ha ke dar hesabdari nistand : '||var_count);
+select count(*) into var_count from TBL_LOAn where LON_ID not in (select distinct REF_LON_ID from TBL_LOAN_PAYMENT);
+DBMS_OUTPUT.PUT_LINE(' tedade tashilat ha ke dar aghsat nistand : '||var_count );
+
+
+END PRC_SYSTEM_DATA_TEST;

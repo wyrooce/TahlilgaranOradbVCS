@@ -5,10 +5,14 @@ import gudusoft.gsqlparser.TGSqlParser;
 import gudusoft.gsqlparser.pp.para.GFmtOpt;
 import gudusoft.gsqlparser.pp.para.GFmtOptFactory;
 import gudusoft.gsqlparser.pp.stmtformattor.FormattorFactory;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 import java.io.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Properties;
 import java.util.Scanner;
 
@@ -16,8 +20,10 @@ import java.util.Scanner;
  * Created by mym on 11/8/16.
  */
 public class Util {
-    public static String path = "/home/mym/vcs";
+    //public static String path = "/home/mym/vcs";
+    public static String path = "vcs";
     public static String defaultPath = "/home/mym/vcs";
+
 
 
 
@@ -30,138 +36,69 @@ public class Util {
     }
 
     public static Info loadSetting() {
-
-        Properties prop = new Properties();
-        InputStream input = null;
         Info info = new Info();
 
+        JSONParser parser = new JSONParser();
+        //Use JSONObject for simple JSON and JSONArray for array of JSON.
+        JSONObject data = null;//path to the JSON file.
         try {
-//            input = new FileInputStream("src/main/java/ir/wyrooce/model/path.txt");
-            File defaultPathFile = new File("resource/path.txt");
-            Scanner in = new Scanner(defaultPathFile);
-            path = in.nextLine();
-            File file = new File(path);
-            if (file.exists() && file.isDirectory()){
-                path += "/vcs";
-                File config = new File(path+"/Config");
-                config.mkdir();
-            }
-            input = new FileInputStream(Util.path + "/Config/setting-vcs.txt");
-            // load a properties file
-            prop.load(input);
-            // get the property value and print it out
-            info.username = prop.getProperty("username");
-            info.password = prop.getProperty("password");
-            info.sid = prop.getProperty("sid");
-            info.host = prop.getProperty("host");
-            //path = prop.getProperty("path");
-        } catch (FileNotFoundException ex){
-            System.out.println("File not found");
-            ex.printStackTrace();
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        } finally {
-            if (input != null) {
-                try {
-                    input.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
+            data = (JSONObject) parser.parse(
+                    new FileReader(Util.path+"/Config/setting-vcs.json"));
+        } catch (IOException e) {
+            System.out.println("[ERR] Setting File not found");
+            return null;
+        } catch (ParseException e) {
+            System.out.println("[ERR] Setting File is invalid");
+            return null;
+        }
+
+        info.host = (String) data.get("host");
+        info.sid = (String) data.get("sid");
+        ArrayList<JSONObject> users = (ArrayList<JSONObject>) data.get("users");
+
+        for (JSONObject user: users){
+            info.addUser(user.get("name").toString(), user.get("password").toString());
         }
         return info;
     }
 
     final public static String viewSQL =
-            "SELECT view_name, text\n" +
-                    "FROM user_views";
+            "SELECT t.view_name, t.text\n" +
+                    "FROM user_views t, user_objects o\n" +
+                    "WHERE t.view_name = o.object_name\n" +
+                    "ORDER BY o.created";
     final public static String tableProperty =
-            "SELECT  table_name, column_name, data_type, data_length, nullable, data_default  \n" +
-                    "FROM dba_tab_columns \n" +
-                    "WHERE owner = USER \n" +
-                    "AND table_name IN (\n" +
-                    "SELECT object_name \n" +
-                    "FROM dba_objects\n" +
-                    "WHERE owner = USER AND object_type = 'TABLE')";
-    final public static String procedureSource =
-            "WITH TMP AS\n" +
-                    "  (SELECT lower(SUBSTR(type, 1,1)) type,\n" +
-                    "    NAME,\n" +
-                    "    LINE,\n" +
-                    "    SUBSTR(TEXT, 0,\n" +
-                    "    CASE\n" +
-                    "      WHEN INSTR(TEXT, '--') = 0\n" +
-                    "      THEN LENGTH(TEXT)\n" +
-                    "      ELSE INSTR(TEXT, '--')-1\n" +
-                    "    END) TEXT\n" +
-                    "  FROM USER_SOURCE\n" +
-                    "  WHERE INSTR(TRIM(TEXT), '--') <> 1\n" +
-                    "  AND TRIM(TEXT)                <> CHR(10)\n" +
-                    "  AND TYPE                       = 'PROCEDURE'\n" +
-                    "  ORDER BY NAME,\n" +
-                    "    LINE\n" +
-                    "  )\n" +
-                    "SELECT NAME,\n" +
-                    "  replace( REPLACE( RTRIM(XMLAGG(XMLELEMENT(E, trim(TEXT), '').EXTRACT('//text()')\n" +
-                    "ORDER BY LINE).GetClobVal(),','), chr(10), ' '), '&apos;', '''') AS CODe\n" +
-                    "FROM TMP\n" +
-                    "GROUP BY NAME";
-    final public static String functionSource =
-            "WITH TMP AS\n" +
-                    "  (SELECT lower(SUBSTR(type, 1,1)) type,\n" +
-                    "    NAME,\n" +
-                    "    LINE,\n" +
-                    "    SUBSTR(TEXT, 0,\n" +
-                    "    CASE\n" +
-                    "      WHEN INSTR(TEXT, '--') = 0\n" +
-                    "      THEN LENGTH(TEXT)\n" +
-                    "      ELSE INSTR(TEXT, '--')-1\n" +
-                    "    END) TEXT\n" +
-                    "  FROM USER_SOURCE\n" +
-                    "  WHERE INSTR(TRIM(TEXT), '--') <> 1\n" +
-                    "  AND TRIM(TEXT)                <> CHR(10)\n" +
-                    "  AND TYPE = 'FUNCTION'\n" +
-                    "  ORDER BY NAME,\n" +
-                    "    LINE\n" +
-                    "  )\n" +
-                    "SELECT\n" +
-                    "  NAME,\n" +
-                    "  regexp_replace( REPLACE( RTRIM(XMLAGG(XMLELEMENT(E, trim(TEXT), '').EXTRACT('//text()')\n" +
-                    "ORDER BY LINE).GetClobVal(),','), chr(10), ' '), ' +', ' ') AS CODe\n" +
-                    "FROM TMP\n" +
-                    "GROUP BY NAME\n";
+    "SELECT  table_name, column_name, data_type, data_length, nullable, data_default  \n"+
+            "                  FROM dba_tab_columns, USER_OBJECTS O\n"+
+            "                    WHERE owner = USER\n"+
+            "                    AND O.OBJECT_NAME = TABLE_NAME\n"+
+            "                    AND table_name IN(\n"+
+            "                    SELECT object_name\n"+
+            "                    FROM dba_objects\n"+
+            "                    WHERE owner = USER AND object_type = 'TABLE')\n"+
+            "                    ORDER BY O.CREATED";
     //-----------------------------------------------------------------------------------------
-    final public static String procedureSourceCodeSQL = "with tmp as(\n" +
-            "select distinct name, type \n" +
-            "from user_source\n" +
-            "where type = 'PROCEDURE')\n" +
-            "select name, dbms_metadata.get_ddl(type,name) code\n" +
-            "from tmp";
-    final public static String functionSourceCodeSQL = "with tmp as(\n" +
-            "select distinct name, type \n" +
-            "from user_source\n" +
-            "where type = 'FUNCTION')\n" +
-            "select name, dbms_metadata.get_ddl(type,name) code\n" +
-            "from tmp";
-    final public static String packageSpecSQL = "with tmp as(\n" +
-            "            select distinct name, type\n" +
-            "            from user_source\n" +
-            "            where type LIKE 'PACKAGE')\n" +
-            "            select name, dbms_metadata.get_ddl('PACKAGE_SPEC',name) code, TYPE\n" +
-            "            from tmp;";
-
-    final public static String packageSQL = "WITH tmp\n" +
-            "AS (SELECT DISTINCT\n" +
-            "  name,\n" +
-            "  type\n" +
-            "FROM user_source\n" +
-            "WHERE type LIKE 'PACKAGE')\n" +
-            "SELECT\n" +
-            "  name,\n" +
-            "  dbms_metadata.get_ddl('PACKAGE', name) body,\n" +
-            "  dbms_metadata.get_ddl('PACKAGE_SPEC', name) spec\n" +
-            "FROM tmp";
-
+    final public static String procedureSourceCodeSQL = "WITH tmp AS\n" +
+            "  ( SELECT DISTINCT NAME, TYPE FROM user_source WHERE TYPE = 'PROCEDURE')\n" +
+            "SELECT t.NAME, dbms_metadata.get_ddl(t.TYPE, t.NAME) code \n" +
+            "FROM tmp t,\n" +
+            "  user_objects o\n" +
+            "WHERE t.NAME = o.object_name\n" +
+            "ORDER BY o.created";
+    final public static String functionSourceCodeSQL = "WITH tmp AS\n" +
+            "  ( SELECT DISTINCT NAME, TYPE FROM user_source WHERE TYPE = 'FUNCTION')\n" +
+            "SELECT t.NAME, dbms_metadata.get_ddl(t.TYPE, t.NAME) code \n" +
+            "FROM tmp t,\n" +
+            "  user_objects o\n" +
+            "WHERE t.NAME = o.object_name\n" +
+            "ORDER BY o.created";
+    final public static String packageSQL = "WITH tmp AS\n" +
+            "  ( SELECT DISTINCT NAME, TYPE FROM user_source WHERE TYPE = 'PACKAGE')\n" +
+            "SELECT t.NAME, dbms_metadata.get_ddl('PACKAGE', t.NAME) BODY, dbms_metadata.get_ddl('PACKAGE_SPEC', name) SPEC\n" +
+            "FROM tmp t,\n" +
+            "  user_objects o\n" +
+            "WHERE t.NAME = o.object_name\n" +
+            "ORDER BY o.created";
 
 
     public static String sha1(String input) throws NoSuchAlgorithmException {

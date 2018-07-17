@@ -1,13 +1,9 @@
 package ir.wyrooce.model;
 
-import javax.swing.*;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.security.NoSuchAlgorithmException;
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.Scanner;
 
 /**
  * Created by mym on 11/7/16.
@@ -22,11 +18,11 @@ public class DatabaseAccess {
         info = Util.loadSetting();
     }
 
-    public String getDBName(){
-        return info.username;
+    public String getDBName(int i){
+        return (String) info.getUser(i).get("username");
     }
 
-    private Connection getDBConnection() {
+    private Connection getDBConnection(int idx) {
         //loadSetting();
 
         Connection dbConnection = null;
@@ -37,19 +33,20 @@ public class DatabaseAccess {
         }
         try {
             dbConnection = DriverManager.getConnection("jdbc:oracle:thin:@" + info.host + ":" + info.sid
-                    , info.username, info.password);
+                    , (String) info.getUser(idx).get("username"), (String) info.getUser(idx).get("password"));
             dbConnection.setAutoCommit(true);
             return dbConnection;
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(null, "اتصال با پایگاه داده برقرار نشد");
+//            JOptionPane.showMessageDialog(null, "اتصال با پایگاه داده برقرار نشد");
+            System.out.println("[ERR] Connection refused: "+info.getUser(idx).get("username"));
             System.out.println(e.getMessage());
             System.exit(1);
         }
         return dbConnection;
     }
 
-    public ArrayList<View> getViewsByConnection() throws SQLException, NoSuchAlgorithmException {
-        Connection con = getDBConnection();
+    public ArrayList<View> getViewsByConnection(int idx) throws SQLException, NoSuchAlgorithmException {
+        Connection con = getDBConnection(idx);
         PreparedStatement stm = con.prepareStatement(Util.viewSQL);
         ResultSet set = stm.executeQuery();
         ArrayList<View> resultArray = new ArrayList<View>();
@@ -65,13 +62,13 @@ public class DatabaseAccess {
         return resultArray;
     }
 
-    public ArrayList<View> fetchViews(String mode) throws SQLException, NoSuchAlgorithmException {
-        if (mode.equals("connection")) return getViewsByConnection();
+    public ArrayList<View> fetchViews(String mode, int idx) throws SQLException, NoSuchAlgorithmException {
+        if (mode.equals("connection")) return getViewsByConnection(idx);
         return fetchViewsBySnapshot();
     }
 
-    public ArrayList<Procedure> getProceduresByConnection() throws SQLException, NoSuchAlgorithmException {
-        Connection con = getDBConnection();
+    public ArrayList<Procedure> getProceduresByConnection(int idx) throws SQLException, NoSuchAlgorithmException {
+        Connection con = getDBConnection(idx);
         PreparedStatement stm = con.prepareStatement(Util.procedureSourceCodeSQL);
         ResultSet set = stm.executeQuery();
         ArrayList<Procedure> resultArray = new ArrayList<Procedure>();
@@ -83,18 +80,18 @@ public class DatabaseAccess {
         return resultArray;
     }
 
-    public ArrayList<Procedure> fetchProcedures(String mode) throws SQLException, NoSuchAlgorithmException {
-        if (mode.equals("connection")) return getProceduresByConnection();
+    public ArrayList<Procedure> fetchProcedures(String mode, int idx) throws SQLException, NoSuchAlgorithmException {
+        if (mode.equals("connection")) return getProceduresByConnection(idx);
         else return getProceduresBySnapshot();
     }
 
-    public ArrayList<Function> fetchFunction(String mode) throws SQLException, NoSuchAlgorithmException {
-        if (mode.equals("connection")) return getFunctionByConnection();
+    public ArrayList<Function> fetchFunction(String mode, int idx) throws SQLException, NoSuchAlgorithmException {
+        if (mode.equals("connection")) return getFunctionByConnection(idx);
         else return fetchFunctionBySnapshot();
     }
 
-    public ArrayList<Function> getFunctionByConnection() throws SQLException, NoSuchAlgorithmException {
-        Connection con = getDBConnection();
+    public ArrayList<Function> getFunctionByConnection(int idx) throws SQLException, NoSuchAlgorithmException {
+        Connection con = getDBConnection(idx);
         PreparedStatement stm = con.prepareStatement(Util.functionSourceCodeSQL);
         ResultSet set = stm.executeQuery();
         ArrayList<Function> resultArray = new ArrayList<Function>();
@@ -110,9 +107,9 @@ public class DatabaseAccess {
         return null;
     }
 
-    public ArrayList<Table> fetchTable(String mode) throws SQLException {
+    public ArrayList<Table> fetchTable(String mode, int idx) throws SQLException {
         if (mode.equals("connection")) {
-            return fetchTableByConnection();
+            return fetchTableByConnection(idx);
         } else return fetchTableBySnapshot();
     }
 
@@ -120,8 +117,8 @@ public class DatabaseAccess {
         return null;
     }
 
-    public ArrayList<Table> fetchTableByConnection() throws SQLException {
-        Connection con = getDBConnection();
+    public ArrayList<Table> fetchTableByConnection(int idx) throws SQLException {
+        Connection con = getDBConnection(idx);
         PreparedStatement stm = con.prepareStatement(Util.tableProperty);
         ResultSet set = stm.executeQuery();
         ArrayList<Table> resultArray = new ArrayList<Table>();
@@ -156,9 +153,9 @@ public class DatabaseAccess {
         return null;
     }
 
-    public ArrayList<Package> fetchPackages(String mode) throws SQLException {
+    public ArrayList<Package> fetchPackages(String mode, int idx) throws SQLException {
         if (mode.equals("connection")) {
-            return fetchPackagesByConnection();
+            return fetchPackagesByConnection(idx);
         } else return fetchPackagesBySnapshot();
     }
 
@@ -166,8 +163,8 @@ public class DatabaseAccess {
         return null;
     }
 
-    private ArrayList<Package> fetchPackagesByConnection() throws SQLException {
-        Connection con = getDBConnection();
+    private ArrayList<Package> fetchPackagesByConnection(int idx) throws SQLException {
+        Connection con = getDBConnection(idx);
         PreparedStatement stm = con.prepareStatement(Util.packageSQL);
         ResultSet set = stm.executeQuery();
         ArrayList<Package> resultArray = new ArrayList<Package>();
