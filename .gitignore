@@ -1,0 +1,8 @@
+#ignore /out folder. jar archive
+/out
+#ignore libraries
+/lib
+lib
+out
+
+*.jar
