@@ -67,16 +67,17 @@ public class Util {
                     "FROM user_views t, user_objects o\n" +
                     "WHERE t.view_name = o.object_name\n" +
                     "ORDER BY o.created";
-    final public static String tableProperty =
-    "SELECT  table_name, column_name, data_type, data_length, nullable, data_default  \n"+
-            "                  FROM dba_tab_columns, USER_OBJECTS O\n"+
-            "                    WHERE owner = USER\n"+
-            "                    AND O.OBJECT_NAME = TABLE_NAME\n"+
-            "                    AND table_name IN(\n"+
-            "                    SELECT object_name\n"+
-            "                    FROM dba_objects\n"+
-            "                    WHERE owner = USER AND object_type = 'TABLE')\n"+
-            "                    ORDER BY O.CREATED";
+    final public static String tableProperty = "SELECT table_name, column_name, data_type, data_length, nullable, data_default, column_id\n" +
+            "FROM dba_tab_columns, user_objects o\n" +
+            "WHERE owner       = USER\n" +
+            "AND o.object_name = table_name\n" +
+            "AND table_name   IN\n" +
+            "  (SELECT object_name\n" +
+            "  FROM dba_objects\n" +
+            "  WHERE owner     = USER\n" +
+            "  AND object_type = 'TABLE'\n" +
+            "  )\n" +
+            "ORDER BY o.created";
     //-----------------------------------------------------------------------------------------
     final public static String procedureSourceCodeSQL = "WITH tmp AS\n" +
             "  ( SELECT DISTINCT NAME, TYPE FROM user_source WHERE TYPE = 'PROCEDURE')\n" +

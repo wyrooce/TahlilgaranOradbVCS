@@ -25894,13 +25894,24 @@ FUNCTION FNC_GAP_NIIM_GET_REPORT_sens ( INPAR_ID IN VARCHAR2 ) RETURN VARCHAR2 A
  select REF_REPORT_ID into var_report from TBL_REPREQ where ID = INPAR_ID; 
  select REF_LEDGER_PROFIEL into var_tahlil from tbl_report where ID = var_report;
 
+
+if(var_tahlil is null) then
+
+var2:='  select id as "name",NAME as "rate" from tbl_report where id = 0
+';
+
+else
   VAR2   := 'select regexp_substr(str, ''[^,]+'', 1, 1) as "name", 
        regexp_substr(str, ''[^,]+'', 1, 2) as "rate"
        from (select regexp_substr ('''||var_tahlil||''', ''[^#]+'',1, rownum) str
 from dual
 connect by level <= regexp_count ('''||var_tahlil||''', ''[^#]+'')) ';
 
+end if;
+
   RETURN VAR2;
+  
+
  END FNC_GAP_NIIM_GET_REPORT_sens;
  /*---------------------------------------------------------------------------------------------*/
 /*---------------------------------------------------------------------------------------------*/
@@ -26941,13 +26952,24 @@ FUNCTION FNC_GAP_NIIM_GET_REPORT_sens ( INPAR_ID IN VARCHAR2 ) RETURN VARCHAR2 A
  select REF_REPORT_ID into var_report from TBL_REPREQ where ID = INPAR_ID; 
  select REF_LEDGER_PROFIEL into var_tahlil from tbl_report where ID = var_report;
 
+
+if(var_tahlil is null) then
+
+var2:='  select id as "name",NAME as "rate" from tbl_report where id = 0
+';
+
+else
   VAR2   := 'select regexp_substr(str, ''[^,]+'', 1, 1) as "name", 
        regexp_substr(str, ''[^,]+'', 1, 2) as "rate"
        from (select regexp_substr ('''||var_tahlil||''', ''[^#]+'',1, rownum) str
 from dual
 connect by level <= regexp_count ('''||var_tahlil||''', ''[^#]+'')) ';
 
+end if;
+
   RETURN VAR2;
+  
+
  END FNC_GAP_NIIM_GET_REPORT_sens;
  /*---------------------------------------------------------------------------------------------*/
 /*---------------------------------------------------------------------------------------------*/

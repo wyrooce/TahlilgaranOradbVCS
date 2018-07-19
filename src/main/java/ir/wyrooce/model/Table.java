@@ -2,6 +2,7 @@ package ir.wyrooce.model;
 
 
 import java.util.ArrayList;
+
 import com.cedarsoftware.util.io.JsonWriter;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -25,7 +26,7 @@ public class Table {
         this.name = name;
     }
 
-    public JSONObject getJSON(){
+    public JSONObject getJSON() {
         JSONObject tableJSON = new JSONObject();
         JSONArray columnsJSON = new JSONArray();
 
@@ -44,7 +45,7 @@ public class Table {
         return tableJSON;
     }
 
-    public String getNiceJSON(){
+    public String getNiceJSON() {
         JSONObject json = getJSON();
         String niceFormattedJson = JsonWriter.formatJson(json.toString());
         return niceFormattedJson;
@@ -54,7 +55,7 @@ public class Table {
         return name;
     }
 
-    public void addColumn(Column column){
+    public void addColumn(Column column) {
         if (column != null)
             columns.add(column);
     }
@@ -73,5 +74,43 @@ public class Table {
 
     public void setDDL(String DDL) {
         this.DDL = DDL;
+    }
+
+    public ArrayList<String> compare(Table otherTable) {//new version of this table
+        System.out.println(otherTable.getName() + " : " + getName() +"----------------------");
+        ArrayList<String> changesList = new ArrayList<String>();
+        ArrayList<String> result = new ArrayList<String>();
+
+        String change;
+        Column tmpColumn;
+        if (!otherTable.getName().equals(getName()))
+            return null;// incompatible table
+        for (Column otherColumn : otherTable.columns) {
+            tmpColumn = getColumn(otherColumn.getName());
+            if (tmpColumn == null) {//this col is created
+                change = "ALTER TABLE ADD ("+otherColumn.getName();
+                changesList.add(change);
+                result.addAll(changesList);
+                //create col
+                //add column
+            } else {
+                changesList = tmpColumn.compare(otherColumn);
+                if (changesList == null)
+                    continue;//not changed
+                else{//coll attribute is changed
+                    //diff
+                    result.addAll(changesList);
+                }
+            }
+        }
+        return result;
+    }
+
+    public Column getColumn(String colName) {
+        for (Column col : columns) {
+            if (col.getName().equals(colName))
+                return col;
+        }
+        return null;
     }
 }

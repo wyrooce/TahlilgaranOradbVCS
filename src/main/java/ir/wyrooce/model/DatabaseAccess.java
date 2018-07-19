@@ -129,14 +129,14 @@ public class DatabaseAccess {
             tblName = set.getString(1);
             for (Table tbl : resultArray) {
                 if (tbl.getName().equals(tblName)) {
-                    tbl.addColumn(new Column(set.getString(2), set.getString(3), set.getInt(4), set.getString(6), set.getString(5)));
+                    tbl.addColumn(new Column(set.getString(2), set.getString(3), set.getInt(4), set.getString(6), set.getString(5), set.getInt(7)));
                     flag = true;
                     break;
                 }
             }
             if (!flag) {
                 Table tbl = new Table(tblName);
-                tbl.addColumn(new Column(set.getString(2), set.getString(3), set.getInt(4), set.getString(6), set.getString(5)));
+                tbl.addColumn(new Column(set.getString(2), set.getString(3), set.getInt(4), set.getString(6), set.getString(5), set.getInt(7)));
                 resultArray.add(tbl);
                 flag = !flag;
             }
